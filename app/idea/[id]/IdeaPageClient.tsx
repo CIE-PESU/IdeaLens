@@ -4,7 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import LogosHeader from "../../components/LogosHeader";
-import { Section, ChipRow, BulletRow, ScoreCard } from "./Components";
+import { Section, ChipRow, BulletRow, ScoreCard, AISnapshot, InnovationMetrics, CollapsibleSection } from "./Components";
+import { Target, Zap, Lightbulb, Mic2, Rocket, ShieldCheck, TrendingUp, Sparkles, Cpu } from "lucide-react";
 
 type TeamRow = {
     team_id: string;
@@ -124,13 +125,52 @@ export default function IdeaPageClient() {
         }), { d: 0, f: 0, v: 0, p: 0 });
 
         const count = juryScores.length;
+        const h_ds = sum.d / count;
+        const h_fs = sum.f / count;
+        const h_vs = sum.v / count;
+        const h_ps = sum.p / count;
+
         return {
-            d: (sum.d / count).toFixed(1),
-            f: (sum.f / count).toFixed(1),
-            v: (sum.v / count).toFixed(1),
-            p: (sum.p / count).toFixed(1),
+            d: h_ds.toFixed(1),
+            f: h_fs.toFixed(1),
+            v: h_vs.toFixed(1),
+            p: h_ps.toFixed(1),
+            raw: { d: h_ds, f: h_fs, v: h_vs, p: h_ps }
         };
     }, [juryScores]);
+
+    const metrics = useMemo(() => {
+        if (!averages || !aiScores10.avg) return null;
+
+        const ai_mr = aiScores10.mr || 0;
+        const ai_fs = aiScores10.f || aiScores10.er || 0;
+        const ai_vs = aiScores10.v || 0;
+        const ai_er = aiScores10.er || 5;
+
+        const h = averages.raw;
+
+        // Calculate Alignment (matching Home page logic)
+        const dev = Math.abs(ai_mr - h.d) + Math.abs(ai_fs - h.f) + Math.abs(ai_vs - h.v) + Math.abs((10 - ai_er) - h.p);
+        const alignment = Math.max(0, Math.min(100, Math.round(100 - (dev * 2.5))));
+
+        // Calculate Index
+        const h_avg = (h.d + h.f + h.v + h.p) / 4;
+        const index = Math.round((h_avg * 8) + (alignment * 0.2));
+
+        let classification = "Standard Protocol";
+        if (index >= 85) classification = "Strategic Frontier";
+        else if (index >= 70) classification = "High Potential";
+        else if (index < 40) classification = "High Risk Node";
+
+        return {
+            alignment,
+            index,
+            classification,
+            totalDeviation: dev,
+            juryData: [h.d, h.f, h.v, h.p],
+            aiData: [ai_mr, ai_fs, ai_vs, 10 - ai_er]
+        };
+    }, [averages, aiScores10]);
 
     useEffect(() => {
         if (!ideaId) return;
@@ -381,253 +421,194 @@ export default function IdeaPageClient() {
                         <div className="text-zinc-500 mb-6">
                             ID: <span className="font-mono bg-zinc-100 px-2 py-1 rounded">{ideaId || "Empty"}</span>
                         </div>
-
-
                     </div>
                 ) : (
-                    <div className="space-y-8">
-                        {/* SEARCH BOX (Relocated) */}
-                        <div className="relative w-full max-w-lg mx-auto">
-                            <input
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onFocus={() => setShowSearchResults(true)}
-                                placeholder="Search Team Name..."
-                                className="w-full bg-white border border-zinc-200 rounded-full px-4 py-3 pl-10 text-sm text-zinc-800 placeholder:text-zinc-400 focus:ring-4 focus:ring-blue-100 focus:border-blue-300 outline-none transition-all shadow-sm hover:shadow-md"
+                    <div className="flex flex-col lg:flex-row gap-12">
+                        {/* LEFT COLUMN: PRIMARY INTELLIGENCE */}
+                        <div className="flex-1 space-y-12">
+                            <AISnapshot
+                                scores={aiScores10}
+                                insights={result?.insights || result?.summary}
                             />
-                            <div className="absolute left-3 top-3.5 text-zinc-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
 
-                            {/* Autocomplete Dropdown */}
-                            {showSearchResults && searchResults.length > 0 && (
-                                <div className="absolute top-full mt-2 left-0 w-full bg-white rounded-xl shadow-xl border border-zinc-100 overflow-hidden z-[60]">
-                                    {searchResults.map((t) => (
-                                        <button
-                                            key={t.team_id}
-                                            onClick={() => handleSearchSelect(t.team_id)}
-                                            className="w-full text-left px-4 py-3 hover:bg-zinc-50 text-sm text-zinc-700 transition-colors border-b border-zinc-50 last:border-none"
-                                        >
-                                            {t.team_name}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                            <div className="space-y-2">
+                                <CollapsibleSection title="Submission Objective" icon="🎯" defaultOpen={true}>
+                                    <Section title="Problem Space" text={team.problem_statement} subHeader={team.problem_title} icon={<Target size={18} />} />
+                                    <Section title="Proposed Solution" text={team.proposed_solution} icon={<Zap size={18} />} />
+                                    <BulletRow title="Innovation Highlights" items={team.innovation_highlights} icon={<Sparkles size={18} />} />
+                                </CollapsibleSection>
 
-                        <div className="rounded-2xl bg-white border shadow-sm p-8">
-                            <div className="border-b pb-6 mb-6 flex flex-col md:flex-row md:items-start justify-between gap-4">
-                                <div>
-                                    <h1 className="text-4xl font-extrabold text-zinc-900 tracking-tight">{team.team_name}</h1>
-                                    <div className="flex flex-wrap items-center gap-4 mt-3 text-sm font-mono text-zinc-500">
-                                        <span className="bg-zinc-100 px-2 py-1 rounded">ID: {team.team_id.slice(0, 8)}...</span>
-                                        {team.team_size && (
-                                            <span className="flex items-center gap-1 text-zinc-600 bg-zinc-50 px-2 py-1 rounded border border-zinc-100">
-                                                👥 {team.team_size} Members
-                                            </span>
-                                        )}
-                                        {team.contact_email && (
-                                            <span className="flex items-center gap-1 text-zinc-600 bg-zinc-50 px-2 py-1 rounded border border-zinc-100">
-                                                ✉️ {team.contact_email}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
+                                <CollapsibleSection title="Execution & Market" icon="🚀" defaultOpen={false}>
+                                    <Section title="Business Model" text={team.business_model} icon={<TrendingUp size={18} />} />
+                                    <Section title="Market Insight" text={team.market_insight} icon={<Cpu size={18} />} />
+                                    <ChipRow title="TARGET USERS" items={team.target_users} variant="blue" icon={<Target size={18} />} />
+                                    <ChipRow title="TECHNOLOGY STACK" items={team.tech_stack} variant="indigo" icon={<Cpu size={18} />} />
+                                </CollapsibleSection>
 
-                                {juryScores.length > 0 && (
-                                    <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl text-emerald-700 font-bold shadow-sm animate-in fade-in zoom-in">
-                                        <span className="text-xl">✓</span>
-                                        Already Evaluated
-                                    </div>
-                                )}
-                            </div>
-                            {team.team_members && (
-                                <div className="mb-8 p-6 bg-zinc-50 rounded-xl border border-zinc-100">
-                                    <h3 className="text-base font-bold text-zinc-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                        Team Structure
-                                    </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                        {(typeof team.team_members === 'string' ? team.team_members.split(',') : []).map((member: string, idx: number) => {
-                                            const name = member.trim();
-                                            if (!name) return null;
-                                            return (
-                                                <div key={idx} className="flex items-center gap-3 bg-white px-4 py-3 rounded-lg border border-zinc-200 shadow-sm">
-                                                    <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                                                        {name.charAt(0)}
+                                <CollapsibleSection title="Risk Analysis" icon="🛡️" defaultOpen={false}>
+                                    <Section title="MARKET READINESS" text={team.market_readiness} icon={<TrendingUp size={18} />} />
+                                    <Section title="EXECUTION READINESS / RISK" text={team.execution_risk} icon={<ShieldCheck size={18} />} />
+                                </CollapsibleSection>
+
+                                <CollapsibleSection title="Team Protocol" icon="👥" defaultOpen={false}>
+                                    {team.team_members && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-6">
+                                            {(typeof team.team_members === 'string' ? team.team_members.split(',') : []).map((member: string, idx: number) => {
+                                                const name = member.trim();
+                                                if (!name) return null;
+                                                return (
+                                                    <div key={idx} className="flex items-center gap-4 bg-white/50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                                        <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-sm italic">
+                                                            {name.charAt(0)}
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-black text-slate-900 text-sm uppercase italic">{name}</span>
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                                                {(team.team_roles?.split(',')?.[idx] || "Specialist").trim()}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-semibold text-zinc-900 text-sm">{name}</span>
-                                                        <span className="text-xs text-zinc-500">
-                                                            {(team.team_roles?.split(',')?.[idx] || "Member").trim()}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                                <Section title="Problem" text={team.problem_statement} subHeader={team.problem_title} />
-                                <Section title="Proposed Solution" text={team.proposed_solution} />
-                                <BulletRow title="Innovation Highlights" items={team.innovation_highlights} />
-                                <Section title="Business Model" text={team.business_model} />
-                                <Section title="Market Insight" text={team.market_insight} />
-                                <ChipRow title="TARGET USERS" items={team.target_users} variant="blue" />
-                                <ChipRow title="TECHNOLOGY STACK" items={team.tech_stack} variant="indigo" />
-                                <Section title="MARKET READINESS" text={team.market_readiness} />
-                                <Section title="EXECUTION READINESS / RISK" text={team.execution_risk} />
-                            </div>
-                        </div>
-
-                        <div className="rounded-2xl bg-white border shadow-sm p-8 overflow-hidden relative">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-                            <h2 className="text-2xl font-extrabold mb-6 flex items-center gap-3 text-blue-900">
-                                Jury Scoring Board
-                            </h2>
-
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                <ScoreCard
-                                    title="Desirability"
-                                    emoji="❤️"
-                                    value={averages?.d || jury.desirability}
-                                    onChange={(v) => handleJuryScoreChange("desirability", v)}
-                                    submitted={submitted}
-                                    ai={aiScores10.d}
-                                    aiRevealed={aiRevealed}
-                                    disabled={juryScores.length > 0}
-                                />
-                                <ScoreCard
-                                    title="Feasibility"
-                                    emoji="🛠️"
-                                    value={averages?.f || jury.feasibility}
-                                    onChange={(v) => handleJuryScoreChange("feasibility", v)}
-                                    submitted={submitted}
-                                    ai={aiScores10.f}
-                                    aiRevealed={aiRevealed}
-                                    disabled={juryScores.length > 0}
-                                />
-                                <ScoreCard
-                                    title="Viability"
-                                    emoji="💰"
-                                    value={averages?.v || jury.viability}
-                                    onChange={(v) => handleJuryScoreChange("viability", v)}
-                                    submitted={submitted}
-                                    ai={aiScores10.v}
-                                    aiRevealed={aiRevealed}
-                                    disabled={juryScores.length > 0}
-                                />
-                                <ScoreCard
-                                    title="Presentation"
-                                    emoji="🎤"
-                                    value={averages?.p || jury.presentation}
-                                    onChange={(v) => handleJuryScoreChange("presentation", v)}
-                                    submitted={submitted}
-                                    ai={null}
-                                    aiRevealed={aiRevealed}
-                                    isManualOnly
-                                    disabled={juryScores.length > 0}
-                                />
-                            </div>
-
-                            <div className="mt-8 flex items-center justify-end border-t pt-6 gap-4">
-                                {juryScores.length > 0 && (
-                                    <div className="mr-auto text-sm font-medium text-emerald-600 flex items-center gap-1.5 py-2 px-3 bg-emerald-50 rounded-lg border border-emerald-100">
-                                        <span className="text-lg">✓</span>
-                                        Evaluation complete. Form locked.
-                                    </div>
-                                )}
-
-                                {!submitted && juryScores.length === 0 && (
-                                    <button
-                                        onClick={onSubmit}
-                                        disabled={submitting}
-                                        className="px-8 py-4 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                    >
-                                        {submitting ? (
-                                            <><span>⏳</span> Submitting...</>
-                                        ) : (
-                                            "Submit"
-                                        )}
-                                    </button>
-                                )}
-
-                                {juryScores.length > 0 && (
-                                    <button
-                                        onClick={() => router.push('/')}
-                                        className="px-6 py-4 rounded-xl border border-zinc-200 hover:bg-zinc-50 text-zinc-600 font-bold text-lg transition-all active:scale-95 flex items-center gap-2"
-                                    >
-                                        Back to Home
-                                    </button>
-                                )}
-
-                                {(submitted || juryScores.length > 0) && (!aiRevealed || aiScores10.d === null) && (
-                                    <button
-                                        onClick={async () => {
-                                            if (team) await refreshData(team, team.team_id);
-                                            setAiRevealed(true);
-                                        }}
-                                        className="px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center gap-2"
-                                    >
-                                        <span>🤖</span> {aiRevealed ? "Try Refreshing Scores" : "Reveal AI Scores"}
-                                    </button>
-                                )}
-                            </div>
-
-
-                            {submitted && (
-                                <div className="mt-6 p-4 bg-green-50 text-green-800 rounded-xl border border-green-200 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
-                                    <div className="text-2xl">🎉</div>
-                                    <div>
-                                        <div className="font-bold">Scores Submitted Successfully!</div>
-                                        <div className="text-sm opacity-90">Thank you for evaluating this project.</div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {submitted && result && (
-                                <div className="mt-8 space-y-6">
-                                    {(result.market_context_signal || result.execution_readiness_signal) && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {result.market_context_signal && (
-                                                <div className="p-5 rounded-xl border border-zinc-100 bg-amber-50/30">
-                                                    <h4 className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                                        <span>🎯</span> Market Context Signal
-                                                    </h4>
-                                                    <p className="text-zinc-700 text-sm leading-relaxed">
-                                                        {result.market_context_signal}
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {result.execution_readiness_signal && (
-                                                <div className="p-5 rounded-xl border border-zinc-100 bg-emerald-50/30">
-                                                    <h4 className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                                        <span>🚀</span> Execution Readiness Signal
-                                                    </h4>
-                                                    <p className="text-zinc-700 text-sm leading-relaxed">
-                                                        {result.execution_readiness_signal}
-                                                    </p>
-                                                </div>
-                                            )}
+                                                );
+                                            })}
                                         </div>
                                     )}
+                                </CollapsibleSection>
+                            </div>
 
-                                    {result.summary && (
-                                        <details className="group rounded-xl border border-zinc-200 bg-zinc-50 p-4 open:bg-white open:shadow-sm transition-all">
-                                            <summary className="cursor-pointer font-semibold text-zinc-700 flex items-center gap-2 select-none">
-                                                <span>🤖</span> Reveal AI Reasoning
-                                                <span className="group-open:rotate-180 transition-transform ml-auto">▼</span>
-                                            </summary>
-                                            <div className="mt-4 text-zinc-600 leading-relaxed whitespace-pre-wrap pl-6 border-l-2 border-zinc-200">
-                                                {result.summary}
-                                            </div>
-                                        </details>
+                            {/* JURY SCORING BOARD */}
+                            <div className="rounded-[2.5rem] bg-white border border-slate-200 shadow-xl p-10 overflow-hidden relative">
+                                <div className="absolute top-0 left-0 w-full h-1.5 bg-brand-accent"></div>
+                                <div className="flex items-center justify-between mb-10">
+                                    <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase italic flex items-center gap-3">
+                                        Jury Scoring Protocol
+                                    </h2>
+                                    {juryScores.length > 0 && (
+                                        <div className="bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl text-emerald-600 font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                            Evaluation Locked
+                                        </div>
                                     )}
                                 </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <ScoreCard
+                                        title="Desirability"
+                                        emoji={<Target size={18} />}
+                                        value={averages?.d || jury.desirability}
+                                        onChange={(v) => handleJuryScoreChange("desirability", v)}
+                                        submitted={submitted}
+                                        ai={aiScores10.d}
+                                        aiRevealed={aiRevealed}
+                                        disabled={juryScores.length > 0}
+                                    />
+                                    <ScoreCard
+                                        title="Feasibility"
+                                        emoji={<Zap size={18} />}
+                                        value={averages?.f || jury.feasibility}
+                                        onChange={(v) => handleJuryScoreChange("feasibility", v)}
+                                        submitted={submitted}
+                                        ai={aiScores10.f}
+                                        aiRevealed={aiRevealed}
+                                        disabled={juryScores.length > 0}
+                                    />
+                                    <ScoreCard
+                                        title="Viability"
+                                        emoji={<TrendingUp size={18} />}
+                                        value={averages?.v || jury.viability}
+                                        onChange={(v) => handleJuryScoreChange("viability", v)}
+                                        submitted={submitted}
+                                        ai={aiScores10.v}
+                                        aiRevealed={aiRevealed}
+                                        disabled={juryScores.length > 0}
+                                    />
+                                    <ScoreCard
+                                        title="Presentation"
+                                        emoji={<Mic2 size={18} />}
+                                        value={averages?.p || jury.presentation}
+                                        onChange={(v) => handleJuryScoreChange("presentation", v)}
+                                        submitted={submitted}
+                                        ai={null}
+                                        aiRevealed={aiRevealed}
+                                        isManualOnly
+                                        disabled={juryScores.length > 0}
+                                    />
+                                </div>
+
+                                <div className="mt-12 flex items-center justify-end gap-4 border-t border-slate-100 pt-8">
+                                    {!submitted && juryScores.length === 0 && (
+                                        <button
+                                            onClick={onSubmit}
+                                            disabled={submitting}
+                                            className="px-10 py-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm uppercase italic tracking-[0.2em] shadow-2xl transition-all active:scale-95 disabled:opacity-50 flex items-center gap-3"
+                                        >
+                                            {submitting ? "Processing..." : "Commit Evaluation"}
+                                        </button>
+                                    )}
+
+                                    {(submitted || juryScores.length > 0) && (!aiRevealed || aiScores10.d === null) && (
+                                        <button
+                                            onClick={async () => {
+                                                if (team) await refreshData(team, team.team_id);
+                                                setAiRevealed(true);
+                                            }}
+                                            className="px-10 py-5 rounded-2xl bg-brand-accent hover:bg-brand-accent/90 text-white font-black text-sm uppercase italic tracking-[0.2em] shadow-2xl transition-all active:scale-95 flex items-center gap-3"
+                                        >
+                                            <Sparkles size={18} /> Reveal AI Analysis
+                                        </button>
+                                    )}
+
+                                    <button
+                                        onClick={() => router.push('/')}
+                                        className="px-10 py-5 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-black text-sm uppercase italic tracking-[0.2em] transition-all"
+                                    >
+                                        Back to Hub
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT COLUMN: STRATEGIC SPINE */}
+                        <div className="w-full lg:w-96 space-y-8">
+                            {metrics && (
+                                <InnovationMetrics
+                                    aiData={metrics.aiData}
+                                    juryData={metrics.juryData}
+                                    alignment={metrics.alignment}
+                                    innovationIndex={metrics.index}
+                                    classification={metrics.classification}
+                                    totalDeviation={metrics.totalDeviation}
+                                />
                             )}
+
+                            {/* NAVIGATION / SEARCH QUICK-LINK */}
+                            <div className="relative group">
+                                <div className="absolute inset-0 bg-brand-accent/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div className="relative bg-white border border-slate-200 p-8 rounded-[2rem] shadow-sm">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">Quick Navigation</span>
+                                    <div className="relative">
+                                        <input
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onFocus={() => setShowSearchResults(true)}
+                                            placeholder="Jump to team..."
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-brand-accent/20 transition-all"
+                                        />
+                                        {showSearchResults && searchResults.length > 0 && (
+                                            <div className="absolute top-full mt-2 left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[60] animate-advanced-reveal">
+                                                {searchResults.map((t) => (
+                                                    <button
+                                                        key={t.team_id}
+                                                        onClick={() => handleSearchSelect(t.team_id)}
+                                                        className="w-full text-left px-5 py-4 hover:bg-slate-50 text-xs font-black uppercase tracking-tight text-slate-600 transition-colors border-b border-slate-50 last:border-none"
+                                                    >
+                                                        {t.team_name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}

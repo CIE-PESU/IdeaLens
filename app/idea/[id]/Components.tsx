@@ -231,7 +231,7 @@ export function ScoreCard({
     isManualOnly = false
 }: {
     title: string,
-    emoji: string,
+    emoji: ReactNode,
     value: string,
     onChange: (v: string) => void,
     submitted: boolean,
@@ -333,7 +333,7 @@ export function AISnapshot({
     insights
 }: {
     scores: any,
-    insights: string | null
+    insights: string | null | undefined
 }) {
     return (
         <div className="bg-premium-gradient rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden mb-12 animate-premium border border-white/10">
