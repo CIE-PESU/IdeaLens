@@ -219,6 +219,40 @@ export function ScoringSlider({
     );
 }
 
+export function ScoreCard({
+    title,
+    emoji,
+    value,
+    onChange,
+    submitted,
+    ai,
+    aiRevealed,
+    disabled,
+    isManualOnly = false
+}: {
+    title: string,
+    emoji: string,
+    value: string,
+    onChange: (v: string) => void,
+    submitted: boolean,
+    ai: number | null,
+    aiRevealed: boolean,
+    disabled: boolean,
+    isManualOnly?: boolean
+}) {
+    return (
+        <ScoringSlider
+            title={title}
+            icon={emoji}
+            value={value}
+            onChange={onChange}
+            disabled={disabled || submitted}
+            aiScore={ai}
+            showAI={aiRevealed && !isManualOnly}
+        />
+    );
+}
+
 /**
  * Compact SVG Radar Chart for Innovation Profiling
  */

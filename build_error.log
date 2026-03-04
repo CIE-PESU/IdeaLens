@@ -1,0 +1,9 @@
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:8081
+- Network:       http://10.14.140.37:8081
+- Environments: .env.local
+
+Γ£ô Starting...
+Γ¿» Unable to acquire lock at C:\Users\Tanziha\idealens\.next\dev\lock, is another instance of next dev running?
+  Suggestion: If you intended to restart next dev, terminate the other process, and then try again.
+[?25h

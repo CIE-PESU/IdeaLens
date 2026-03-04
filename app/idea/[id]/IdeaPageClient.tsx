@@ -3,7 +3,8 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { LogoBar, Section, ChipRow, BulletRow, ScoreCard } from "./Components";
+import LogosHeader from "../../components/LogosHeader";
+import { Section, ChipRow, BulletRow, ScoreCard } from "./Components";
 
 type TeamRow = {
     team_id: string;
@@ -60,56 +61,12 @@ export default function IdeaPageClient() {
     const [ideaId, setIdeaId] = useState<string>("");
 
     useEffect(() => {
-        const extractId = () => {
-            if (typeof window === "undefined") return "";
-
-            // 1. Surgical extraction from URL (highest priority)
-            const path = window.location.pathname;
-            const segments = path.split('/').filter(Boolean);
-            const ideaIdx = segments.indexOf('idea');
-
-            // Look for the segment immediately after /idea/
-            const idFromPath = (ideaIdx !== -1 && segments[ideaIdx + 1]) ? segments[ideaIdx + 1] : "";
-
-            // EXPLICITLY ignore all legacy keywords
-            const reserved = ['view', 'placeholder', 'fallback', 'index', 'loading', 'undefined', 'null'];
-            if (idFromPath && !reserved.includes(idFromPath)) {
-                return idFromPath;
-            }
-
-            // 2. Next.js params
-            const pId = params?.id as string;
-            if (pId && !reserved.includes(pId)) {
-                return pId;
-            }
-
-            return "";
-        };
-
-        const finalId = extractId();
-        if (finalId) {
-            setIdeaId(finalId);
-        } else {
-            // Intensive retry for 2.5 seconds to handle hydration/rewrites on slow networks
-            let count = 0;
-            const interval = setInterval(() => {
-                count++;
-                const retryId = extractId();
-                if (retryId) {
-                    setIdeaId(retryId);
-                    clearInterval(interval);
-                } else if (count > 25) { // Stop after 2.5 seconds
-                    setLoading(false);
-                    // If we're on a broken path, send 'em home
-                    if (typeof window !== "undefined" && (window.location.pathname.includes('placeholder') || window.location.pathname.includes('view'))) {
-                        router.push('/');
-                    }
-                    clearInterval(interval);
-                }
-            }, 100);
-            return () => clearInterval(interval);
+        const pId = params?.id as string;
+        const reserved = ['view', 'placeholder', 'fallback', 'index', 'loading', 'undefined', 'null'];
+        if (pId && !reserved.includes(pId)) {
+            setIdeaId(pId);
         }
-    }, [params, router]);
+    }, [params]);
 
     const [loading, setLoading] = useState(true);
     const [team, setTeam] = useState<TeamRow | null>(null);
@@ -183,26 +140,12 @@ export default function IdeaPageClient() {
             setError(null);
             setMissingTableError(false);
 
-            // Decode the identifier from the URL (it's likely a team name now)
-            const decodedIdentifier = decodeURIComponent(ideaId);
-
-            // 1. Try to fetch by team_name first (new routing)
-            let { data: teamData, error: teamError } = await supabase
+            // Fetch by team_id (the [id] param)
+            const { data: teamData, error: teamError } = await supabase
                 .from("idea_submissions")
                 .select("*")
-                .eq("team_name", decodedIdentifier)
+                .eq("team_id", ideaId)
                 .maybeSingle();
-
-            // 2. Fallback to team_id if name search failed (old links/UUIDs)
-            if (!teamData && !teamError) {
-                const fallback = await supabase
-                    .from("idea_submissions")
-                    .select("*")
-                    .eq("team_id", ideaId) // Use original string for UUIDs
-                    .maybeSingle();
-                teamData = fallback.data as TeamRow;
-                teamError = fallback.error;
-            }
 
             if (teamError) {
                 setError(`Teams fetch error: ${teamError.message}`);
@@ -210,10 +153,14 @@ export default function IdeaPageClient() {
                 return;
             }
 
-            setTeam(teamData as TeamRow);
-            const actualId = teamData.team_id;
+            if (!teamData) {
+                setError("Team not found");
+                setLoading(false);
+                return;
+            }
 
-            await refreshData(teamData as TeamRow, actualId);
+            setTeam(teamData as TeamRow);
+            await refreshData(teamData as TeamRow, ideaId);
             setLoading(false);
         };
 
@@ -234,12 +181,10 @@ export default function IdeaPageClient() {
             for (const col of table.cols) {
                 try {
                     let query = supabase.from(table.name).select("*");
-                    const value = (col.includes("name") || col === "team") ? teamData.team_name : actualId;
-
-                    if (col.includes("name") || col === "team") {
-                        query = query.ilike(col, value.trim());
-                    } else {
-                        query = query.eq(col, value);
+                    if (col.includes("id") || col === "team_id") {
+                        query = query.eq(col, actualId);
+                    } else if (col.includes("name") || col === "team") {
+                        query = query.ilike(col, teamData.team_name.trim());
                     }
 
                     if (table.sort) {
@@ -399,9 +344,9 @@ export default function IdeaPageClient() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-50 font-sans">
-                <LogoBar />
-                <div className="flex items-center justify-center p-20 text-xl text-zinc-500 animate-pulse">
+            <div className="min-h-screen bg-slate-50 font-sans">
+                <LogosHeader />
+                <div className="flex items-center justify-center p-20 text-xl text-slate-500 animate-pulse">
                     Loading Idea details...
                 </div>
             </div>
@@ -409,9 +354,9 @@ export default function IdeaPageClient() {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-50 font-sans pb-20">
+        <div className="min-h-screen bg-slate-50 font-sans pb-20 selection:bg-brand-accent/30">
             <div className="max-w-6xl mx-auto p-6 md:p-8">
-                <LogoBar />
+                <LogosHeader />
                 {missingTableError && (
                     <div className="mb-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-yellow-800 shadow-sm flex items-start gap-3">
                         <span className="text-2xl">⚠️</span>
@@ -531,8 +476,8 @@ export default function IdeaPageClient() {
                                 <BulletRow title="Innovation Highlights" items={team.innovation_highlights} />
                                 <Section title="Business Model" text={team.business_model} />
                                 <Section title="Market Insight" text={team.market_insight} />
-                                <ChipRow title="TARGET USERS" items={team.target_users} color="blue" />
-                                <ChipRow title="TECHNOLOGY STACK" items={team.tech_stack} color="indigo" />
+                                <ChipRow title="TARGET USERS" items={team.target_users} variant="blue" />
+                                <ChipRow title="TECHNOLOGY STACK" items={team.tech_stack} variant="indigo" />
                                 <Section title="MARKET READINESS" text={team.market_readiness} />
                                 <Section title="EXECUTION READINESS / RISK" text={team.execution_risk} />
                             </div>

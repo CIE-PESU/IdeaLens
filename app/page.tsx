@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
+import LogosHeader from "./components/LogosHeader";
 import { Search, Check, ArrowRight, Plus, LayoutGrid, List, BarChart3, ChevronRight } from "lucide-react";
 
 type TeamPreview = {
@@ -96,8 +97,15 @@ export default function Home() {
 
         setTeams(enrichedTeams as TeamPreview[]);
       } catch (err: any) {
-        console.error("Error fetching dashboard data:", err);
-        setError(`Failed to load teams: ${err.message}`);
+        console.error("Dashboard Intelligence Error:", err);
+
+        // Check for common Cloudflare 404/HTML responses which indicate proxy issues
+        const errorMsg = err.message || String(err);
+        if (errorMsg.includes("<!DOCTYPE html>") || errorMsg.includes("404")) {
+          setError("Connection Error: The backend service is currently unreachable via proxy. Please ensure direct Supabase access is configured.");
+        } else {
+          setError(`Failed to load intelligence: ${errorMsg}`);
+        }
       } finally {
         setLoading(false);
       }
@@ -149,45 +157,7 @@ export default function Home() {
     <div className="relative min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-brand-accent/30">
 
       {/* Logos Container */}
-      <div className="w-full px-6 pt-8 pb-4">
-        <div className="grid grid-cols-3 items-center w-full">
-          {/* PES logo → extreme left */}
-          <div className="justify-self-start">
-            <Image
-              src="/pes_v2.png"
-              alt="PES"
-              width={400}
-              height={400}
-              className="h-28 md:h-32 lg:h-36 w-auto object-contain"
-              priority
-            />
-          </div>
-
-          {/* IdeaLens logo → exact center */}
-          <div className="justify-self-center">
-            <Image
-              src="/idealens.png"
-              alt="IdeaLens"
-              width={400}
-              height={400}
-              className="h-32 md:h-36 lg:h-40 w-auto object-contain"
-              priority
-            />
-          </div>
-
-          {/* CIE logo → extreme right */}
-          <div className="justify-self-end">
-            <Image
-              src="/cie.png"
-              alt="CIE"
-              width={400}
-              height={400}
-              className="h-28 md:h-32 lg:h-36 w-auto object-contain"
-              priority
-            />
-          </div>
-        </div>
-      </div>
+      <LogosHeader />
 
       <main className="w-full px-12 mt-6 pb-10">
 
@@ -261,7 +231,7 @@ export default function Home() {
             {processedTeams.map((team, index) => (
               <Link
                 key={team.team_id}
-                href={`/idea/${encodeURIComponent(team.team_name || team.team_id)}`}
+                href={`/idea/${encodeURIComponent(team.team_id)}`}
                 className="group flex items-center justify-between py-6 border-b border-slate-100 hover:bg-slate-50/50 transition-all px-4"
               >
                 {/* Left Section: Logo & Name */}
