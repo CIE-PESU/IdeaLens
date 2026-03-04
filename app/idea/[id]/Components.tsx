@@ -330,10 +330,14 @@ function RadarChart({ aiData, juryData, size = 160 }: { aiData: number[], juryDa
  */
 export function AISnapshot({
     scores,
-    insights
+    insights,
+    teamName,
+    problemTitle
 }: {
     scores: any,
-    insights: string | null | undefined
+    insights: string | null | undefined,
+    teamName?: string,
+    problemTitle?: string | null
 }) {
     return (
         <div className="bg-premium-gradient rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden mb-12 animate-premium border border-white/10">
@@ -345,10 +349,10 @@ export function AISnapshot({
                     <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-3">
                             <Cpu size={14} className="text-brand-accent animate-pulse" />
-                            <span className="text-xs font-bold tracking-[0.3em] uppercase text-brand-accent">Protocol Snapshot</span>
+                            <span className="text-xs font-bold tracking-[0.3em] uppercase text-brand-accent">Protocol Snapshot {teamName ? `| ${teamName}` : ''}</span>
                         </div>
                         <h2 className="text-5xl font-black tracking-tight leading-none italic">
-                            The <span className="text-brand-accent">Vision</span> Core
+                            {problemTitle || "The Vision Core"}
                         </h2>
                         <p className="text-slate-300 text-sm leading-relaxed max-w-xl italic">
                             {insights || "Synthesizing market signals and technical feasibility thresholds..."}

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import LogosHeader from "../../components/LogosHeader";
 import { Section, ChipRow, BulletRow, ScoreCard, AISnapshot, InnovationMetrics, CollapsibleSection } from "./Components";
-import { Target, Zap, Lightbulb, Mic2, Rocket, ShieldCheck, TrendingUp, Sparkles, Cpu } from "lucide-react";
+import { Target, Zap, Lightbulb, Mic2, Rocket, ShieldCheck, TrendingUp, Sparkles, Cpu, AlertTriangle } from "lucide-react";
 
 type TeamRow = {
     team_id: string;
@@ -62,11 +62,32 @@ export default function IdeaPageClient() {
     const [ideaId, setIdeaId] = useState<string>("");
 
     useEffect(() => {
-        const pId = params?.id as string;
-        const reserved = ['view', 'placeholder', 'fallback', 'index', 'loading', 'undefined', 'null'];
-        if (pId && !reserved.includes(pId)) {
-            setIdeaId(pId);
-        }
+        const extractId = () => {
+            let pId = params?.id as string;
+            if (pId) pId = decodeURIComponent(pId);
+            const reserved = ['view', 'placeholder', 'fallback', 'index', 'loading', 'undefined', 'null'];
+
+            // Fallback to URL path extraction if params is reserved or clearly a placeholder
+            if (!pId || reserved.includes(pId)) {
+                if (typeof window !== 'undefined') {
+                    const pathParts = window.location.pathname.split('/');
+                    const lastPart = pathParts[pathParts.length - 1];
+                    if (lastPart && !reserved.includes(lastPart)) {
+                        pId = decodeURIComponent(lastPart);
+                    }
+                }
+            }
+
+            if (pId && !reserved.includes(pId)) {
+                setIdeaId(pId);
+            }
+        };
+
+        extractId();
+
+        // Retry logic for hydration delays
+        const timer = setTimeout(extractId, 500);
+        return () => clearTimeout(timer);
     }, [params]);
 
     const [loading, setLoading] = useState(true);
@@ -173,35 +194,49 @@ export default function IdeaPageClient() {
     }, [averages, aiScores10]);
 
     useEffect(() => {
-        if (!ideaId) return;
+        if (!ideaId) {
+            // If we've waited 3 seconds and still no valid ID, something is wrong
+            const timer = setTimeout(() => {
+                if (!ideaId) {
+                    setError("Invalid URL structure or ID missing");
+                    setLoading(false);
+                }
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
 
         const run = async () => {
             setLoading(true);
             setError(null);
             setMissingTableError(false);
 
-            // Fetch by team_id (the [id] param)
-            const { data: teamData, error: teamError } = await supabase
-                .from("idea_submissions")
-                .select("*")
-                .eq("team_id", ideaId)
-                .maybeSingle();
+            try {
+                // Fetch by team_id
+                const { data: teamData, error: teamError } = await supabase
+                    .from("idea_submissions")
+                    .select("*")
+                    .eq("team_id", ideaId)
+                    .maybeSingle();
 
-            if (teamError) {
-                setError(`Teams fetch error: ${teamError.message}`);
+                if (teamError) {
+                    setError(`Teams fetch error: ${teamError.message}`);
+                    setLoading(false);
+                    return;
+                }
+
+                if (!teamData) {
+                    setError("Intelligence Node Not Found. This entry may have been purged or the ID is invalid.");
+                    setLoading(false);
+                    return;
+                }
+
+                setTeam(teamData as TeamRow);
+                await refreshData(teamData as TeamRow, ideaId);
+            } catch (e: any) {
+                setError(`Fetch error: ${e.message}`);
+            } finally {
                 setLoading(false);
-                return;
             }
-
-            if (!teamData) {
-                setError("Team not found");
-                setLoading(false);
-                return;
-            }
-
-            setTeam(teamData as TeamRow);
-            await refreshData(teamData as TeamRow, ideaId);
-            setLoading(false);
         };
 
         run();
@@ -209,38 +244,29 @@ export default function IdeaPageClient() {
 
     const refreshData = async (teamData: TeamRow, actualId: string) => {
         const tables = [
-            { name: "ai_evaluations", cols: ["team_name", "team_id"], sort: "evaluated_at" },
-            { name: "human_evaluations", cols: ["team_name", "idea_id"], sort: null },
-            { name: "evaluation_runs", cols: ["team_name"], sort: null },
-            { name: "idea_submissions", cols: ["team_name", "team_id"], sort: null }
+            { name: "ai_evaluations", idCol: "team_id", sort: "evaluated_at" },
+            { name: "human_evaluations", idCol: "idea_id", sort: null },
+            { name: "evaluation_runs", idCol: "team_id", sort: null },
+            { name: "idea_submissions", idCol: "team_id", sort: null }
         ];
 
         let finalResult: any = null;
 
         for (const table of tables) {
-            for (const col of table.cols) {
-                try {
-                    let query = supabase.from(table.name).select("*");
-                    if (col.includes("id") || col === "team_id") {
-                        query = query.eq(col, actualId);
-                    } else if (col.includes("name") || col === "team") {
-                        query = query.ilike(col, teamData.team_name.trim());
-                    }
+            try {
+                let query = supabase.from(table.name).select("*").eq(table.idCol, actualId);
 
-                    if (table.sort) {
-                        query = query.order(table.sort, { ascending: false });
-                    }
-
-                    const { data, error } = await query.limit(1).maybeSingle();
-
-                    if (data) {
-                        if (!finalResult) {
-                            finalResult = { ...data };
-                        }
-                    }
-                } catch (e: any) {
-                    // Ignore
+                if (table.sort) {
+                    query = query.order(table.sort, { ascending: false });
                 }
+
+                const { data, error } = await query.limit(1).maybeSingle();
+
+                if (data && !finalResult) {
+                    finalResult = { ...data };
+                }
+            } catch (e: any) {
+                // Ignore
             }
         }
 
@@ -415,11 +441,27 @@ export default function IdeaPageClient() {
                     </div>
                 )}
 
-                {!team ? (
+                {error ? (
+                    <div className="rounded-[2rem] bg-white border border-rose-100 p-16 shadow-2xl text-center flex flex-col items-center gap-6 animate-advanced-reveal">
+                        <div className="h-20 w-20 rounded-full bg-rose-50 flex items-center justify-center text-rose-500">
+                            <AlertTriangle size={40} />
+                        </div>
+                        <div>
+                            <div className="text-3xl font-black text-slate-900 uppercase italic tracking-tight mb-3">Intelligence Link Failed</div>
+                            <div className="text-slate-500 font-medium max-w-md mx-auto">{error}</div>
+                        </div>
+                        <button
+                            onClick={() => router.push('/')}
+                            className="mt-4 px-10 py-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm uppercase italic tracking-[0.2em] shadow-xl transition-all"
+                        >
+                            Back to Command Hub
+                        </button>
+                    </div>
+                ) : !team ? (
                     <div className="rounded-xl bg-white border p-8 shadow-sm text-center">
-                        <div className="text-xl font-semibold mb-2">No team found</div>
+                        <div className="text-xl font-semibold mb-2">Initializing intelligence handshake...</div>
                         <div className="text-zinc-500 mb-6">
-                            ID: <span className="font-mono bg-zinc-100 px-2 py-1 rounded">{ideaId || "Empty"}</span>
+                            Linking to Node: <span className="font-mono bg-zinc-100 px-2 py-1 rounded">{ideaId || "Resolving..."}</span>
                         </div>
                     </div>
                 ) : (
@@ -429,6 +471,8 @@ export default function IdeaPageClient() {
                             <AISnapshot
                                 scores={aiScores10}
                                 insights={result?.insights || result?.summary}
+                                teamName={team.team_name}
+                                problemTitle={team.problem_title}
                             />
 
                             <div className="space-y-2">
@@ -451,27 +495,28 @@ export default function IdeaPageClient() {
                                 </CollapsibleSection>
 
                                 <CollapsibleSection title="Team Protocol" icon="👥" defaultOpen={false}>
-                                    {team.team_members && (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-6">
-                                            {(typeof team.team_members === 'string' ? team.team_members.split(',') : []).map((member: string, idx: number) => {
-                                                const name = member.trim();
-                                                if (!name) return null;
-                                                return (
-                                                    <div key={idx} className="flex items-center gap-4 bg-white/50 p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                                        <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-sm italic">
-                                                            {name.charAt(0)}
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="font-black text-slate-900 text-sm uppercase italic">{name}</span>
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                                {(team.team_roles?.split(',')?.[idx] || "Specialist").trim()}
-                                                            </span>
-                                                        </div>
+                                    {(() => {
+                                        const members = Array.isArray(team.team_members) ? team.team_members : (typeof team.team_members === 'string' ? team.team_members.split(',') : []);
+                                        const roles = Array.isArray(team.team_roles) ? team.team_roles : (typeof team.team_roles === 'string' ? team.team_roles.split(',') : []);
+
+                                        return members.map((member: string, idx: number) => {
+                                            const name = member.trim();
+                                            if (!name) return null;
+                                            return (
+                                                <div key={idx} className="flex items-center gap-4 bg-white/50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                                    <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-sm italic">
+                                                        {name.charAt(0)}
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+                                                    <div className="flex flex-col">
+                                                        <span className="font-black text-slate-900 text-sm uppercase italic">{name}</span>
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                                            {(roles[idx] || "Specialist").trim()}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                    })()}
                                 </CollapsibleSection>
                             </div>
 
