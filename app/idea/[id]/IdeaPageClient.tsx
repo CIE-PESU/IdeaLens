@@ -493,7 +493,7 @@ export default function IdeaPageClient() {
                                 <ScoreCard
                                     title="Desirability"
                                     emoji="❤️"
-                                    value={jury.desirability}
+                                    value={averages?.d || jury.desirability}
                                     onChange={(v) => handleJuryScoreChange("desirability", v)}
                                     submitted={submitted}
                                     ai={aiScores10.d}
@@ -503,7 +503,7 @@ export default function IdeaPageClient() {
                                 <ScoreCard
                                     title="Feasibility"
                                     emoji="🛠️"
-                                    value={jury.feasibility}
+                                    value={averages?.f || jury.feasibility}
                                     onChange={(v) => handleJuryScoreChange("feasibility", v)}
                                     submitted={submitted}
                                     ai={aiScores10.f}
@@ -513,7 +513,7 @@ export default function IdeaPageClient() {
                                 <ScoreCard
                                     title="Viability"
                                     emoji="💰"
-                                    value={jury.viability}
+                                    value={averages?.v || jury.viability}
                                     onChange={(v) => handleJuryScoreChange("viability", v)}
                                     submitted={submitted}
                                     ai={aiScores10.v}
@@ -523,7 +523,7 @@ export default function IdeaPageClient() {
                                 <ScoreCard
                                     title="Presentation"
                                     emoji="🎤"
-                                    value={jury.presentation}
+                                    value={averages?.p || jury.presentation}
                                     onChange={(v) => handleJuryScoreChange("presentation", v)}
                                     submitted={submitted}
                                     ai={null}
