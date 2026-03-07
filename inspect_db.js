@@ -16,30 +16,32 @@ envContent.split('\n').forEach(line => {
 const supabase = createClient(envVars.NEXT_PUBLIC_SUPABASE_URL, envVars.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 async function inspect() {
-    console.log("--- FINAL INSPECTION ---");
-
-    // First, let's just get ONE row from ai_evaluations to see columns
+    // Check ai_evaluations
     const { data: aiData, error: aiError } = await supabase.from('ai_evaluations').select('*').limit(1);
-
     if (aiError) {
         console.log("ai_evaluations Error:", aiError.message);
     } else if (aiData && aiData.length > 0) {
         console.log("ai_evaluations Columns:", Object.keys(aiData[0]).join(', '));
-        console.log("ai_evaluations Row:", JSON.stringify(aiData[0]));
+        console.log("ai_evaluations Row Sample:", JSON.stringify(aiData[0]));
     } else {
         console.log("ai_evaluations is EMPTY.");
     }
 
-    // Now check teams column names
-    const { data: teamData, error: teamError } = await supabase.from('teams').select('*').limit(1);
-    if (teamData && teamData.length > 0) {
-        console.log("teams Columns:", Object.keys(teamData[0]).join(', '));
+    // Check human_evaluations
+    const { data: humanData, error: humanError } = await supabase.from('human_evaluations').select('*').limit(1);
+    if (humanError) {
+        console.log("human_evaluations Error:", humanError.message);
+    } else if (humanData && humanData.length > 0) {
+        console.log("human_evaluations Columns:", Object.keys(humanData[0]).join(', '));
+        console.log("human_evaluations Row Sample:", JSON.stringify(humanData[0]));
+    } else {
+        console.log("human_evaluations is EMPTY.");
     }
 
-    // Check idea_results
-    const { data: resData, error: resError } = await supabase.from('idea_results').select('*').limit(1);
-    if (resData && resData.length > 0) {
-        console.log("idea_results Columns:", Object.keys(resData[0]).join(', '));
+    // Check idealens_submissions2 (for ref)
+    const { data: subData, error: subError } = await supabase.from('idealens_submissions2').select('*').limit(1);
+    if (subData && subData.length > 0) {
+        console.log("idealens_submissions2 Columns:", Object.keys(subData[0]).join(', '));
     }
 }
 

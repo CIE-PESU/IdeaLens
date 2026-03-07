@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import LogosHeader from "../../components/LogosHeader";
 import { Section, ChipRow, BulletRow, ScoreCard, AISnapshot, InnovationMetrics, CollapsibleSection } from "./Components";
-import { Target, Zap, Lightbulb, Mic2, Rocket, ShieldCheck, TrendingUp, Sparkles, Cpu, AlertTriangle } from "lucide-react";
+import { Target, Zap, Lightbulb, Mic2, Rocket, ShieldCheck, TrendingUp, Sparkles, Cpu, AlertTriangle, Heart, Hammer } from "lucide-react";
 
 type TeamRow = {
     team_id: string;
@@ -454,7 +454,7 @@ export default function IdeaPageClient() {
                             onClick={() => router.push('/')}
                             className="mt-4 px-10 py-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm uppercase italic tracking-[0.2em] shadow-xl transition-all"
                         >
-                            Back to Command Hub
+                            Back
                         </button>
                     </div>
                 ) : !team ? (
@@ -538,7 +538,7 @@ export default function IdeaPageClient() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <ScoreCard
                                         title="Desirability"
-                                        emoji={<Target size={18} />}
+                                        emoji={<Heart size={18} />}
                                         value={averages?.d || jury.desirability}
                                         onChange={(v) => handleJuryScoreChange("desirability", v)}
                                         submitted={submitted}
@@ -548,7 +548,7 @@ export default function IdeaPageClient() {
                                     />
                                     <ScoreCard
                                         title="Feasibility"
-                                        emoji={<Zap size={18} />}
+                                        emoji={<Hammer size={18} />}
                                         value={averages?.f || jury.feasibility}
                                         onChange={(v) => handleJuryScoreChange("feasibility", v)}
                                         submitted={submitted}
@@ -586,7 +586,7 @@ export default function IdeaPageClient() {
                                             disabled={submitting}
                                             className="px-10 py-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm uppercase italic tracking-[0.2em] shadow-2xl transition-all active:scale-95 disabled:opacity-50 flex items-center gap-3"
                                         >
-                                            {submitting ? "Processing..." : "Commit Evaluation"}
+                                            {submitting ? "Submitting..." : "Submit"}
                                         </button>
                                     )}
 
@@ -598,7 +598,7 @@ export default function IdeaPageClient() {
                                             }}
                                             className="px-10 py-5 rounded-2xl bg-brand-accent hover:bg-brand-accent/90 text-white font-black text-sm uppercase italic tracking-[0.2em] shadow-2xl transition-all active:scale-95 flex items-center gap-3"
                                         >
-                                            <Sparkles size={18} /> Reveal AI Analysis
+                                            <Sparkles size={18} /> AI SCORE
                                         </button>
                                     )}
 
@@ -606,7 +606,7 @@ export default function IdeaPageClient() {
                                         onClick={() => router.push('/')}
                                         className="px-10 py-5 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-black text-sm uppercase italic tracking-[0.2em] transition-all"
                                     >
-                                        Back to Hub
+                                        Back
                                     </button>
                                 </div>
                             </div>

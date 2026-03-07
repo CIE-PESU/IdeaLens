@@ -1,0 +1,13 @@
+RPC Error: Could not find the function public.get_table_constraints(t_name) in the schema cache
+Records sample idea_id: [
+  { idea_id: '31556d4f-5ba5-4a15-bea1-da30e37d1915' },
+  { idea_id: '31556d4f-5ba5-4a15-bea1-da30e37d1915' },
+  { idea_id: 'a8d59c57-4503-4fd0-a71e-ab7dddafed04' },
+  { idea_id: 'a8d59c57-4503-4fd0-a71e-ab7dddafed04' },
+  { idea_id: 'a8d59c57-4503-4fd0-a71e-ab7dddafed04' },
+  { idea_id: '31556d4f-5ba5-4a15-bea1-da30e37d1915' },
+  { idea_id: '31556d4f-5ba5-4a15-bea1-da30e37d1915' },
+  { idea_id: 'd7f91871-8e41-4fc9-8926-4a87dbc9a7af' },
+  { idea_id: '477973fc-e437-4bda-b028-8ce34bbcc258' },
+  { idea_id: 'e2c5ed79-5a71-4d8d-a786-40f5b62b69df' }
+]

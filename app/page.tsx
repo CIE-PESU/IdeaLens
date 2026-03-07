@@ -163,7 +163,7 @@ export default function Home() {
             {processedTeams.map((team, index) => (
               <Link
                 key={team.id}
-                href={`/team/${encodeURIComponent(team.id)}`}
+                href={`/idea/team?id=${encodeURIComponent(team.id)}`}
                 className="group flex items-center justify-between py-6 border-b border-slate-100 hover:bg-slate-50/50 transition-all px-4"
               >
                 {/* Left Section: Logo & Name */}

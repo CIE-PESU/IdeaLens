@@ -61,7 +61,7 @@ export function Section({ title, text, subHeader, icon }: { title: string; text:
         <div className="group space-y-3 py-6 last:pb-0 transition-all duration-300">
             <div className="flex items-center gap-2">
                 {icon && <span className="text-brand-accent">{icon}</span>}
-                <h3 className="text-[10px] font-black text-brand-accent uppercase tracking-[0.3em]">{title}</h3>
+                <h3 className="text-[18px] font-black text-black uppercase tracking-[0.3em]">{title}</h3>
             </div>
             {subHeader && <div className="text-2xl font-black text-[#0F1E2E] leading-tight tracking-tight uppercase italic">{subHeader}</div>}
             <div className="text-[#0F1E2E]/80 leading-relaxed text-lg font-medium max-w-4xl">
@@ -86,7 +86,7 @@ export function ChipRow({ title, items, variant = "blue", icon }: { title: strin
         <div className="space-y-4 py-6 transition-all duration-300">
             <div className="flex items-center gap-2">
                 {icon && <span className="text-brand-accent">{icon}</span>}
-                <h3 className="text-[10px] font-black text-brand-accent uppercase tracking-[0.3em]">{title}</h3>
+                <h3 className="text-[18px] font-black text-black uppercase tracking-[0.3em]">{title}</h3>
             </div>
             <div className="flex flex-wrap gap-2.5">
                 {itemList.length === 0 ? (
@@ -112,7 +112,7 @@ export function BulletRow({ title, items, icon }: { title: string; items: string
         <div className="space-y-4 py-6 transition-all duration-300">
             <div className="flex items-center gap-2">
                 {icon && <span className="text-brand-accent">{icon}</span>}
-                <h3 className="text-[10px] font-black text-brand-accent uppercase tracking-[0.3em]">{title}</h3>
+                <h3 className="text-[18px] font-black text-black uppercase tracking-[0.3em]">{title}</h3>
             </div>
             <ul className="space-y-3">
                 {itemList.length === 0 ? <li className="text-slate-400 italic">—</li> : itemList.map((x, i) => (
@@ -417,7 +417,7 @@ export function InnovationMetrics({
             <div>
                 <div className="flex items-center gap-2 mb-8 uppercase tracking-[0.3em]">
                     <Activity size={14} className="text-brand-accent" />
-                    <h3 className="text-[12px] font-black text-slate-400">Strategic Analysis</h3>
+                    <h3 className="text-[12px] font-black text-black">Strategic Analysis</h3>
                 </div>
 
                 <div className="space-y-12">

@@ -8,7 +8,7 @@ export const onRequest = async ({ request, env }: any) => {
         return env.ASSETS.fetch(request);
     }
 
-    // Rewrite any /idea/* to /idea/view.html (the static fallback)
-    const rewriteUrl = new URL("/idea/view.html", url.origin);
+    // Rewrite any /idea/* to /idea/fallback.html (the static fallback)
+    const rewriteUrl = new URL("/idea/fallback.html", url.origin);
     return env.ASSETS.fetch(rewriteUrl);
 };

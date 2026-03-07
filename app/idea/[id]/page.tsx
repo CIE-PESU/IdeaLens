@@ -1,7 +1,7 @@
 import IdeaPageClient from "./IdeaPageClient";
 
 export function generateStaticParams() {
-    return [{ id: "view" }];
+    return [{ id: "fallback" }];
 }
 
 export default function Page() {
