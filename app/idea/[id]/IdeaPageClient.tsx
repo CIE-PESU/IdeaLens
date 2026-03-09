@@ -117,9 +117,24 @@ export default function IdeaPageClient() {
         const d = raw?.desirability_score ?? raw?.desirability ?? null;
         const f = raw?.feasibility_score ?? raw?.feasibility ?? null;
         const v = raw?.viability_score ?? raw?.viability ?? null;
-        const avg = raw?.average_dfv_score ?? raw?.weighted_dfv ?? null;
-        const mr = raw?.market_readiness ?? null;
-        const er = raw?.execution_risk ?? null;
+
+        // Extract average from multiple potential locations (new pipeline saves it in evaluation_json)
+        const avgRaw = raw?.evaluation_json?.average ?? raw?.average_dfv_score ?? raw?.weighted_dfv ?? null;
+
+        // Fallback to manual average if no explicit average is found
+        let avg = avgRaw;
+        if (avg === null && d !== null && f !== null && v !== null) {
+            const dNum = typeof d === 'string' ? parseFloat(d) : d;
+            const fNum = typeof f === 'string' ? parseFloat(f) : f;
+            const vNum = typeof v === 'string' ? parseFloat(v) : v;
+            avg = (dNum + fNum + vNum) / 3;
+        }
+
+        // Map AI evaluation to UI metrics
+        // The new AI pipeline doesn't have explicit market_readiness and execution_risk scores
+        // so we use Desirability for Market and Feasibility for Execution
+        const mr = raw?.market_readiness ?? d ?? null;
+        const er = raw?.execution_risk ?? f ?? null;
 
         const toDisplay = (x: any) => {
             if (x === null || x === undefined) return null;
