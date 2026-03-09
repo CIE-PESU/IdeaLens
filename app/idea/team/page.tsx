@@ -141,14 +141,17 @@ function TeamDetailsContent() {
                 .insert({
                     idea_id: id,
                     team_name: submission.team_name,
-                    desirability_score: juryScores.d,
-                    feasibility_score: juryScores.f,
-                    viability_score: juryScores.v,
+                    desirability_score: Math.round(juryScores.d),
+                    feasibility_score: Math.round(juryScores.f),
+                    viability_score: Math.round(juryScores.v),
                     overall_comments: juryFeedback,
                     evaluated_at: new Date().toISOString()
                 });
 
-            if (insertError) throw insertError;
+            if (insertError) {
+                console.error("Raw Insert Error:", JSON.stringify(insertError));
+                throw insertError;
+            }
 
             // Update local state to show "Submitted" and fetch the created record
             const { data: updatedHData } = await supabase
@@ -162,8 +165,9 @@ function TeamDetailsContent() {
             setHumanEval(updatedHData);
             setJurySubmitted(true);
         } catch (err: any) {
-            console.error("Submission failed:", err);
-            alert(`Submission failed: ${err.message}`);
+            const errMsg = err?.message || err?.details || JSON.stringify(err);
+            console.error("Submission failed exact:", err, " stringified:", errMsg);
+            alert(`Submission failed: ${errMsg}`);
         } finally {
             setSubmittingJury(false);
         }
