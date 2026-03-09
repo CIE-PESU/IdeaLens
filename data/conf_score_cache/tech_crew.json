@@ -1,0 +1,19 @@
+{
+  "Desirability": 7,
+  "Feasibility": 8,
+  "Viability": 5,
+  "average": 6.67,
+  "rationale": [
+    "Clear user pain in painting tall surfaces",
+    "Existing drone tech supports feasibility",
+    "Monetization model not clearly defined"
+  ],
+  "market_context_signal": "Identifies safety and efficiency pain in painting industry; references user feedback but lacks detailed demand evidence.",
+  "execution_readiness_signal": "Leverages existing drone tech and simulations; some user feedback indicates practical development approach.",
+  "_tokens": {
+    "prompt": 454,
+    "completion": 124,
+    "total": 578
+  },
+  "_json_failed": false
+}

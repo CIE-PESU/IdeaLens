@@ -1,0 +1,60 @@
+{
+  "plastic_patrol": {
+    "Desirability": 9,
+    "Feasibility": 8,
+    "Viability": 8,
+    "average": 8.33,
+    "rationale": [
+      "Clear users, urgent pain, strong market evidence",
+      "Prototype exists, multidisciplinary team, realistic approach",
+      "Defined revenue streams, clear customer segments, scalable"
+    ],
+    "_tokens": {
+      "prompt": 1647,
+      "completion": 81,
+      "total": 1728
+    },
+    "_json_failed": false,
+    "_project_name": "plastic_patrol"
+  },
+  "smart_grid": {
+    "Desirability": 9,
+    "Feasibility": 7,
+    "Viability": 5,
+    "average": 7.0,
+    "rationale": [
+      "Specific user: smart grid households in India",
+      "Real-time anomaly detection is technically feasible",
+      "Weak monetization model indicated"
+    ],
+    "market_context_signal": "Clear understanding of Indian smart meter market and consumer losses from false data injection attacks",
+    "execution_readiness_signal": "No direct evidence on team capability; technical approach plausible but effort needed",
+    "_tokens": {
+      "prompt": 457,
+      "completion": 120,
+      "total": 577
+    },
+    "_json_failed": false,
+    "_project_name": "smart_grid"
+  },
+  "tech_crew": {
+    "Desirability": 9,
+    "Feasibility": 9,
+    "Viability": 8,
+    "average": 8.67,
+    "rationale": [
+      "Clear user pain with strong survey evidence",
+      "Buildable now with defined tech stack and prototype",
+      "Plausible monetization with target market share and cost model"
+    ],
+    "market_context_signal": "Strong understanding of market size, growth, automation trends, and limited competition in drone painting.",
+    "execution_readiness_signal": "Demonstrated prototype, detailed hardware/software stack, simulation tools, and customer feedback channels established.",
+    "_tokens": {
+      "prompt": 1243,
+      "completion": 135,
+      "total": 1378
+    },
+    "_json_failed": false,
+    "_project_name": "tech_crew"
+  }
+}

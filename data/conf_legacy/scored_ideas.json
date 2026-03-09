@@ -1,0 +1,182 @@
+[
+  {
+    "Team Name": null,
+    "Team Representative Name": null,
+    "Core Problem Statement": "Engineering students face difficulty in understanding core concepts.",
+    "Target Audience": "Engineering Students, Educators & Institutions",
+    "Cost of the Problem Headline Metric": null,
+    "Category": null,
+    "Number of Interviews Conducted": "50",
+    "Key Interview Insights": [
+      "12 students said No!",
+      "20 students asked for domain-specific QA",
+      "18 students said Yes!",
+      "Shifted from generic QA to domain-specific AI-driven explanations"
+    ],
+    "Most Powerful Customer Quote": null,
+    "Market Size TAM": "$457.8 billion by 2026",
+    "Market Size SAM": null,
+    "Market Size SOM": null,
+    "Cost of the Problem Notes": "Wasted Time, Frustration, Potential Academic Setbacks",
+    "Current Solutions": [
+      "Stack Overflow",
+      "Brainly",
+      "Quizlet",
+      "Chegg",
+      "Wolfram Alpha"
+    ],
+    "Why Those Fail": [
+      "Lack of Computational Models to solve unsolved questions",
+      "Lack of Visualisations to grasp solutions and understand concepts"
+    ],
+    "Identified Gap": "Complex Concepts Challenges, Inaccurate responses to engineering questions, Lack of Interactive, Personalised Experience",
+    "Desirability": "Customers desire tailored and accurate explanations, visual enrichment, time efficiency, and overcoming knowledge barriers. Supported by 82% of students wanting AI-driven personalized learning and interactive tools improving retention by 30%.",
+    "Feasability": null,
+    "Viability": "Profitable due to a strong, growing EdTech market, scalable platform, competitive edge with computational models, AI, and interactive visualizations, and increased student performance. Revenue streams include freemium model and institutional licensing, with educational institutions as key partners.",
+    "DFV Cohesion": null,
+    "Proposed Solution Direction": "AI-powered platform with personalized QA and visual learning, offering personalized, accurate, and visually enriched explanations via a simple UI, LLM, and APIs to display diagrams.",
+    "Key Value Proposition": "Personalized, accurate, and visually enriched explanations, providing immediate answers and visual explanations to solve challenging questions and understand concepts, relieving the pain of searching online or asking teachers/peers.",
+    "Next Step With Support": "Launch MVP with Q&A and DFA/NFA visualizations, collect feedback from 50+ engineering students.",
+    "_source_file": "cerelobeai.pdf",
+    "Desirability_Score": 3,
+    "Feasibility_Score": 1,
+    "Viability_Score": 1,
+    "average": 1.67,
+    "rationale": [
+      "Vague user/problem; no evidence of specific demand.",
+      "No solution proposed; feasibility cannot be assessed.",
+      "No solution proposed; no viable path evident."
+    ]
+  },
+  {
+    "Team Name": null,
+    "Team Representative Name": null,
+    "Core Problem Statement": "Many elderly people and chronic patients struggle to remember or manage their medications daily.",
+    "Target Audience": "Elderly individuals, chronic disease patients, and their caregivers.",
+    "Cost of the Problem Headline Metric": null,
+    "Category": null,
+    "Number of Interviews Conducted": null,
+    "Key Interview Insights": [
+      "Difficulty tracking refills",
+      "Forgetting to take medication",
+      "Taking the wrong dosage"
+    ],
+    "Most Powerful Customer Quote": null,
+    "Market Size TAM": "$200B+ healthcare automation",
+    "Market Size SAM": "$3.5B smart medication devices",
+    "Market Size SOM": "₹50 crore worth market in India",
+    "Cost of the Problem Notes": "Missed doses, health complications, stress, and hospital visits.",
+    "Current Solutions": [
+      "Traditional pill boxes",
+      "Mobile reminder apps",
+      "Caregivers",
+      "Smart dispensers like Hero",
+      "Med Minder"
+    ],
+    "Why Those Fail": [
+      "Lack of automation in traditional solutions",
+      "High cost and complexity in smart devices",
+      "No real- time caregiver updates in many products"
+    ],
+    "Identified Gap": "Lack of automation in traditional solutions, High cost and complexity in smart devices, No real- time caregiver updates in many products",
+    "Desirability": "Medication management is a daily struggle; users want simplicity and reliability",
+    "Feasability": "Functional prototype and 20-user pilot test by semester-end; MVP development (working prototype) and small batch manufacturing within 18 months; team workflow includes weekly build-meets, modular task division, agile iteration; team is highly motivated and technically skilled.",
+    "Viability": "Direct sale of devices and optional subscription for caregiver alerts & analytics, with ~40% margin per unit, scalable with local assembly and minimal support. Bulk production reduces per-unit cost.",
+    "DFV Cohesion": null,
+    "Proposed Solution Direction": "A compact, affordable smart pill dispenser with automated dispensing 2 minutes prior to the time of taking tablet, built-in alarms, LED/buzzer alerts, and optional mobile app for caregiver notifications.",
+    "Key Value Proposition": "Simple, low-cost device that ensures consistent medication adherence and peace of mind for families.",
+    "Next Step With Support": "Functional prototype and 20-user pilot test",
+    "_source_file": "dgi.pdf",
+    "Desirability_Score": 7,
+    "Feasibility_Score": 2,
+    "Viability_Score": 2,
+    "average": 3.7,
+    "rationale": [
+      "Clear user, urgent pain; common knowledge supports demand.",
+      "No solution described; impossible to assess buildability or risks.",
+      "No solution described; no revenue model or market path."
+    ]
+  },
+  {
+    "Team Name": null,
+    "Team Representative Name": null,
+    "Core Problem Statement": "Current road safety systems lack real-time, connected solutions for accident prevention.",
+    "Target Audience": "Fleet Operators & Rideshare Companies (B2B), Safety-Conscious Drivers (D2C)",
+    "Cost of the Problem Headline Metric": null,
+    "Category": null,
+    "Number of Interviews Conducted": null,
+    "Key Interview Insights": [],
+    "Most Powerful Customer Quote": null,
+    "Market Size TAM": "The global automotive safety market",
+    "Market Size SAM": "Mid-range to budget vehicle owners and manufacturers",
+    "Market Size SOM": "Early adopters and fleet operators",
+    "Cost of the Problem Notes": "High vehicle repair and maintenance costs, insurance premiums, and potential medical expenses. Significant loss of life, time, and resources. High accident rates causing significant economic and emotional loss. Costly vehicle damage and rising insurance premiums.",
+    "Current Solutions": [
+      "Tesla",
+      "Waymo",
+      "Volvo",
+      "Mercedes-Benz",
+      "V2X Startups",
+      "Navigation apps"
+    ],
+    "Why Those Fail": [
+      "Limited to high-end cars without real-time inter-vehicle communication",
+      "Rely on expensive infrastructure and centralized systems",
+      "focusing on individual vehicle safety",
+      "Lack real-time peer-to-peer communication"
+    ],
+    "Identified Gap": "Lack of real-time, connected solutions for accident prevention in current road safety systems.",
+    "Desirability": "Instant safety alerts, easy-to-use, affordable technology, reduces accident risks, boosts driving confidence, real-time tracking and proactive hazard detection.",
+    "Feasability": "Uses low-latency peer-to-peer communication, implements predictive algorithms, compatible with various vehicle models, uses GPS & embedded microcontroller, technical feasibility confirmed through analysis of existing V2V implementations and advancements in sensor technology.",
+    "Viability": "Scalable business model, large addressable market (TAM, SAM, SOM), competitive pricing, subscription model, bulk discounts, partnership pricing, large and growing market, technological readiness, regulatory momentum, competitive advantage, low infrastructure requirements, scalability, value-based pricing, recurring revenue.",
+    "DFV Cohesion": null,
+    "Proposed Solution Direction": "Real-Time Vehicle-to-Vehicle Communication via a Plug-and-Play Dashboard Device providing Instant Safety Alerts and working across vehicles.",
+    "Key Value Proposition": "Instant safety alerts about nearby vehicle movements, easy-to-use, affordable technology requiring minimal technical expertise, reduces accident risks and boosts driving confidence.",
+    "Next Step With Support": null,
+    "_source_file": "odyssey.pdf",
+    "Desirability_Score": 3,
+    "Feasibility_Score": 1,
+    "Viability_Score": 1,
+    "average": 1.67,
+    "rationale": [
+      "Vague problem statement; no specific user or demand evidence.",
+      "No solution described; technical realism cannot be assessed.",
+      "No business model or customer; economic path unclear."
+    ]
+  },
+  {
+    "Team Name": null,
+    "Team Representative Name": null,
+    "Core Problem Statement": "Urban food waste contributes to 8-10% of global emissions, while millions go hungry daily",
+    "Target Audience": "businesses, NGOs, and consumers",
+    "Cost of the Problem Headline Metric": "8-10% of global emissions",
+    "Category": null,
+    "Number of Interviews Conducted": null,
+    "Key Interview Insights": [],
+    "Most Powerful Customer Quote": null,
+    "Market Size TAM": "₹13,750 crores/month",
+    "Market Size SAM": "₹3,850 crores/month",
+    "Market Size SOM": "₹423 crores/month",
+    "Cost of the Problem Notes": "Urban food waste contributes to 8-10% of global emissions, while millions go hungry daily",
+    "Current Solutions": [],
+    "Why Those Fail": [],
+    "Identified Gap": null,
+    "Desirability": "Businesses are increasingly adopting sustainable practices. Public awareness about food insecurity and climate change has never been higher. Government policies and incentives are actively promoting sustainability initiatives",
+    "Feasability": null,
+    "Viability": null,
+    "DFV Cohesion": null,
+    "Proposed Solution Direction": "ZeroBite is a smart platform that connects businesses, NGOs, and consumers to redistribute surplus food efficiently, reducing waste while ensuring mutual benefits.",
+    "Key Value Proposition": "['Encouraging businesses to donate surplus food by offering tax benefits, reduced waste costs, and CSR impact.', 'Connecting NGOs with food donors for efficient distribution to those in need, ensuring transparency and real-time tracking.', 'Selling near-expiry products(1-2weeks)at discounted prices making essentials more affordable']",
+    "Next Step With Support": null,
+    "_source_file": "zerobite.pdf",
+    "Desirability_Score": 3,
+    "Feasibility_Score": 1,
+    "Viability_Score": 1,
+    "average": 1.7,
+    "rationale": [
+      "Vague user/problem; no specific target for an innovation.",
+      "No solution proposed; impossible to assess buildability.",
+      "No business model or customer defined; no path to sustainability."
+    ]
+  }
+]

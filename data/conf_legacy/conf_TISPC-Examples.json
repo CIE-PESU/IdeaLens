@@ -1,0 +1,113 @@
+{
+  "TIPSC_Examples": [
+    {
+      "category": "EdTech",
+      "problem_statement": "Students struggle to stay engaged during online lectures.",
+      "justifications": {
+        "Timely": "Post-pandemic digital learning fatigue has made engagement a critical challenge right now.",
+        "Important": "Reduced engagement impacts academic performance and motivation for millions of learners.",
+        "Profitable": "Schools and edtech companies are actively investing in engagement platforms and AI tutors.",
+        "Solvable": "Gamified learning tools and attention-tracking AI models are accessible and already in use.",
+        "Context": "The National Education Policy (NEP) 2020 supports digital education innovation and blended learning."
+      },
+      "rubric_scores": {
+        "Timely": 9,
+        "Important": 8,
+        "Profitable": 7,
+        "Solvable": 9,
+        "Context": 8
+      },
+      "average_score": 8.2,
+      "rating_band": "Good to Excellent",
+      "cohesion_summary": "Strong alignment across all elements. The problem is urgent, meaningful, and solvable with current tools. Market and policy trends support innovation."
+    },
+
+    {
+      "category": "Campus Life",
+      "problem_statement": "Students find it difficult to locate available study rooms or quiet spaces on campus.",
+      "justifications": {
+        "Timely": "With the return to in-person classes and larger student intake, shared study spaces are in high demand.",
+        "Important": "Affects students’ ability to focus and collaborate, influencing academic outcomes.",
+        "Profitable": "University administration might not pay directly, but sponsorships or analytics-based funding models exist.",
+        "Solvable": "IoT sensors and mobile apps for real-time occupancy detection are proven and affordable.",
+        "Context": "Campus IT infrastructure supports digital tools; students are digitally literate and open to adoption."
+      },
+      "rubric_scores": {
+        "Timely": 8,
+        "Important": 7,
+        "Profitable": 6,
+        "Solvable": 9,
+        "Context": 8
+      },
+      "average_score": 7.6,
+      "rating_band": "Good",
+      "cohesion_summary": "A relevant, student-centric problem with feasible tech solutions. Monetization may be limited but value for campus life is clear."
+    },
+
+    {
+      "category": "Health",
+      "problem_statement": "Young adults ignore early signs of stress and burnout, leading to mental health issues.",
+      "justifications": {
+        "Timely": "Post-pandemic, mental health awareness has grown and burnout prevention is a top concern.",
+        "Important": "Affects individual well-being, workplace productivity, and societal health costs.",
+        "Profitable": "There is strong market demand for mental wellness apps, wearables, and counseling services.",
+        "Solvable": "AI-based mood tracking and behavior analytics are available and proven in pilot programs.",
+        "Context": "Cultural acceptance of mental health solutions is improving, and policy support is increasing."
+      },
+      "rubric_scores": {
+        "Timely": 9,
+        "Important": 9,
+        "Profitable": 8,
+        "Solvable": 8,
+        "Context": 8
+      },
+      "average_score": 8.4,
+      "rating_band": "Excellent",
+      "cohesion_summary": "Highly relevant and impactful opportunity with strong user demand and feasible technological pathways. Ethical data use must be ensured."
+    },
+
+    {
+      "category": "Sustainability",
+      "problem_statement": "Significant food waste occurs daily in university canteens.",
+      "justifications": {
+        "Timely": "Sustainability and SDG goals are major institutional priorities right now.",
+        "Important": "Reduces resource efficiency and increases campus environmental footprint.",
+        "Profitable": "Monetary return is modest, but social and environmental ROI is high.",
+        "Solvable": "Smart bins, analytics for waste tracking, and food donation logistics exist.",
+        "Context": "Students and staff support green initiatives; local NGOs and regulations encourage food redistribution."
+      },
+      "rubric_scores": {
+        "Timely": 8,
+        "Important": 8,
+        "Profitable": 6,
+        "Solvable": 9,
+        "Context": 9
+      },
+      "average_score": 8.0,
+      "rating_band": "Good to Excellent",
+      "cohesion_summary": "Socially valuable and feasible idea that aligns with sustainability goals. Economic profit is secondary but justified by high social benefit."
+    },
+
+    {
+      "category": "Urban Mobility",
+      "problem_statement": "Women face safety concerns during late-night commutes in metropolitan areas.",
+      "justifications": {
+        "Timely": "Media and government focus on women’s safety has increased; public demand for solutions is immediate.",
+        "Important": "Affects women’s freedom of mobility and workforce participation.",
+        "Profitable": "Ride-hailing and mobility startups see clear opportunity in safe, verified travel solutions.",
+        "Solvable": "GPS tracking, driver verification, and AI monitoring systems are mature technologies.",
+        "Context": "Government safety programs and social support for women’s empowerment create a strong enabling environment."
+      },
+      "rubric_scores": {
+        "Timely": 9,
+        "Important": 10,
+        "Profitable": 8,
+        "Solvable": 8,
+        "Context": 9
+      },
+      "average_score": 8.8,
+      "rating_band": "Excellent",
+      "cohesion_summary": "Compelling, socially vital issue with urgency, strong policy backing, and feasible technological interventions. High impact potential across sectors."
+    }
+  ]
+}

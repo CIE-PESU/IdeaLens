@@ -1,0 +1,82 @@
+{
+  "startup_profile": {
+    "name": "Synapse BridgED",
+    "problem_summary": "A B2B platform bridging the gap between engineering classroom theory and real-world application through active, lab-linked projects."
+  },
+  "problem_statement": {
+    "core_issue": "India produces over a million engineering graduates annually, yet employability hovers between 45-55%.",
+    "context": "While the startup ecosystem is booming, students lack the conceptual foundation to turn learning into innovation.",
+    "supporting_data": [
+      {
+        "insight": "Innovation is rising, but conceptual understanding is lagging. Only a small fraction of students can apply classroom theory.",
+        "visualization": "",
+        "data_point": "Employability peaked at ~15.9% for high-skilled roles in 2025."
+      },
+      {
+        "insight": "Startup explosion vs. Skills gap.",
+        "visualization": "",
+        "data_point": "Startups grew from 30,000 (2019) to over 1.8 lakh (2025)."
+      },
+      {
+        "insight": "Low R&D investment limits hands-on inquiry.",
+        "visualization": "",
+        "data_point": "India spends only ~0.64% of GDP on R&D, resulting in fewer well-funded labs."
+      },
+      {
+        "insight": "Lack of research-led teaching.",
+        "data_point": "Low funding means teaching staff rarely engage in funded research, leading to rote-based instruction."
+      }
+    ]
+  },
+  "customer_validation": {
+    "methodology": "16 offline interviews and 162 online responses from PES students.",
+    "key_pain_point": "Students struggle with new topics due to forgotten prerequisites or missed classes.",
+    "student_quote": "I missed one class, and it took me three hours on YouTube to find what my teacher explained in ten minutes.",
+    "quantified_loss": {
+      "time_lost": "10 hours/week relearning topics",
+      "monetary_loss_per_semester": "₹47,000 (₹40,000 in lost time + ₹7,000 on external courses)"
+    }
+  },
+  "competitive_landscape": {
+    "direct_competitors": [
+      "Traditional Tuition (High cost)",
+      "LMS like Moodle/Google Classroom (Passive storage)",
+      "Generic Online Courses (No link to college syllabus/creative projects)"
+    ],
+    "differentiation": "Unlike generic apps, Synapse BridgED fits into the specific college routine and links directly to lab work."
+  },
+  "market_opportunity": {
+    "gap": "Existing tools dump information without connecting it to classwork.",
+    "value_proposition": "Building a bridge between classroom teaching and real understanding to make learning simpler, not heavier.",
+    "market_size": {
+      "TAM": "36,000 Students",
+      "SAM": "10,000 Students",
+      "SOM": "3,000 - 3,500 Students",
+      "industry_growth": "India EdTech market at $7.5B, projected $25-33B by 2030 (CAGR 17-28%)."
+    }
+  },
+  "solution": {
+    "for_students": [
+      "Bridges missing foundations",
+      "Custom learning paths",
+      "Lab-linked active projects",
+      "All-in-one resource"
+    ],
+    "for_teachers": [
+      "Insightful analytics",
+      "Research-led teaching support",
+      "Professional growth"
+    ],
+    "for_colleges": [
+      "Better lab utilization",
+      "Improved academic performance",
+      "Revival of research culture",
+      "Curriculum modernization"
+    ]
+  },
+  "business_model": {
+    "type": "B2B",
+    "revenue_stream": "Platform licenses sold directly to colleges.",
+    "target_segment": "Undergraduate engineering students (2nd to 4th year)."
+  }
+}

@@ -1,0 +1,47 @@
+team_name,evaluator,desirability,feasibility,viability,average,tokens_used
+ArthaMind Technologies,gemini,8,6,9,7.67,3375
+AllerGenie,gemini,7,3,3,4.33,2950
+GigaChads,gemini,2,1,1,1.33,2052
+Orion,openai,7,6,5,6,
+TasteBuds,openai,5,7,5,5.67,
+ArthaMind Technologies,human,7,6,7,6.67,
+Orion,human,6,7,7,6.67,
+Teenpreuners,gemini,5,5,5,5,2441
+Shopease,gemini,6,5,5,5.33,2309
+Pawsitive Impact,gemini,7,1,1,3,2854
+Teenpreuners,openai,6,7,6,6.33,2219
+Shopease,openai,7,7,6,6.67,2412
+Pawsitive Impact,openai,5,6,5,5.33,2534
+Teenpreuners,human,8,6,6,6.67,
+Shopease,human,7,7,6,6.67,
+Pawsitive Impact,human,7,6,7,6.67,
+TechCrew,gemini,1,1,1,1,2648
+SugarFree,gemini,5,4,4,4.33,3485
+Critics,gemini,5,6,7,6,2411
+HealthHive,gemini,7,1,1,3,3774
+VEB,gemini,6,3,3,4,2581
+TechCrew,openai,6,5,5,5.33,2193
+SugarFree,openai,7,5,5,5.67,3063
+Critics,openai,6,7,5,6,2142
+HealthHive,openai,8,6,6,6.67,3277
+VEB,openai,5,5,4,4.67,2642
+TechCrew,human,5,4,8,5.67,
+SugarFree,human,3,3,5,3.67,
+Critics,human,6,5,4,5,
+HealthHive,human,5,8,8,7,
+VEB,human,4,5,6,5,
+rmrf,gemini,,,,,
+CerelobeAI,gemini,,,,,
+DGI,gemini,,,,,
+Odyssey,gemini,,,,,
+Zerobite,gemini,,,,,
+rmrf,openai,7,7,6,6.67,1844
+CerelobeAI,openai,7,7,6,6.67,2636
+DGI,openai,7,8,6,7,1978
+Odyssey,openai,5,5,5,5,2045
+Zerobite,openai,3,1,1,1.67,1613
+rmrf,human,8,8,8,8,
+CerelobeAI,human,7,6,7,6.67,
+DGI,human,6,6,6,6,
+Odyssey,human,7,7,7,7,
+Zerobite,human,6,7,7,6.67,

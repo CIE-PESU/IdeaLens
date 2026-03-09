@@ -1,0 +1,109 @@
+CHALLENGES IN THE PAINTING INDUSTRY
+Reducing Risks, Saving Lives: Drones for Safer Wall Painting
+Solution: An AI-enabled autonomous drone specifically
+designed for painting tall and large surfaces efficiently and safely.
+3D MAPPING
+• Drones with similar capabilities (e.g., precision flying,
+payload delivery) already exist and are commercially
+available.
+• Advanced simulation allows
+for precise modeling of
+drone behavior, paint
+application, and wall
+navigation.
+• Feedback from potential users supports the
+development of user-friendly and effective
+solutions.
+•
+Current solutions require manual labor whereas our
+drone can dynamically adapt to wall sizes, shapes
+and textures.
+PRETOTYPE
+• Video Simulation: Short demo of drones painting faster, safer, and
+better.
+• Customer Survey: Interviews with paint companies, contractors, and
+owners.
+• Price Test: Comparing willingness to pay for drones vs. manual painting.
+WEBSITE
+OUR WEBSITE LINK-- https://techcrew.my.canva.site/
+3/13/2025 8
+31.9% strongly agree drones save
+58% would use painting drones,
+time & cost, 63.8% find it 70% were unaware of drone
+37.7% are open to it.
+satisfactory.
+painting tech.
+INSIGHTS
+FROM
+GOOGLE
+FORM
+62.9% faced project delays
+94.4% say traditional painting is
+due to labor issues.
+risky.
+Traditional Painters vs. Drone Innovations
+COMPETITORS
+LIMITED COMPETITION!!!
+Customer Discovery
+Market Opportunity
+• The global painting and coatings
+market size is estimated to be
+worth USD 282.45 billion by
+2034.
+• With our drone technology ,we
+aim to capture 5% of
+SAM(Serviceable Addressable
+Market) in next 3 years,
+equating to 14.12 million
+• Adoption of automation and AI in
+construction is accelerating at a
+CAGR of 4.27% from 2025 to
+2034.
+Market Catalysts
+• Increasing construction
+activity.
+• Rising demand for
+commercial and
+residential painting.
+• Estimated 30%
+increase in automation-
+based solutions in
+construction
+COST ESTIMATION
+COMPONENT
+COST
+PROFIT MODEL
+Expected Business Trajectory
+IMPLEMENTATION PLAN
+TECH STACK
+AI-Automated Painting Drone Tech Stack 3. AI Features for Efficiency
+1. Hardware Components • Dynamic Spray Control for Uniform
+• Drone Frame & Propulsion System Coating
+• Controller (e.g., Jetson Nano, ESP32, Raspberry • Paint Quantity Prediction for Efficient
+Pi) Usage
+• Sensors (e.g., IMU, LiDAR, Depth Camera, • Auto-Calibration for Accurate Paint Flow
+Ultrasonic Sensors) • Error Detection with Real-Time Feedback
+• Spray Painting Mechanism 4. Recommended Architecture
+• Communication & Control System • Jetson Nano for AI computation and image
+2. Software Stack processing
+• AI Frameworks: TensorFlow, PyTorch • ESP32 for lightweight control and
+• Drone Control & Navigation: PX4 Autopilot, communication
+ArduPilot • Raspberry Pi for additional processing and
+• Computer Vision Algorithms: Object Detection, interfacing
+Edge Detection, Image Segmentation 5. Development Tools
+• Path Planning Algorithms: A*, Dijkstra's Algorithm, • Gazebo (Simulation Environment)
+RRT (Rapidly-exploring Random Tree) • AirSim (AI Training and Testing Platform)
+• Cloud & Remote Management: AWS IoT, Azure IoT • QGroundControl (Drone Flight Control
+Hub Interface)
+• Communication Protocols: MQTT, ROS (Robot • Python, C++ for programming and algorithm
+Operating System) development
+
+RESEARCH AND REFERENCES
+• https://www.mordorintelligence.com/industry-reports/india-paints-and-coatings-market
+• https://www.mdpi.com/journal/drones
+• https://www.businessresearchinsights.com/market-reports/paint-market-118799
+• https://www.akzonobel.com/en/about-us/-innovation-/innovation-stories/new-autonomous-drone-is-a-smarter-
+way-to-apply-paint
+• https://www.researchgate.net/publication/363939019_Smart_Intelligent_Drone_for_Painting_Using_IoT_An_A
+utomated_Approach_for_Efficient_Painting
+• https://www.prodrone.com/usecases/wall-maintenance-by-drone-with-paint-roller/

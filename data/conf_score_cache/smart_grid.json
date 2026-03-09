@@ -1,0 +1,19 @@
+{
+  "Desirability": 9,
+  "Feasibility": 9,
+  "Viability": 8,
+  "average": 8.67,
+  "rationale": [
+    "Clear user, urgent pain, strong evidence",
+    "Prototype validated, affordable hardware, low risk",
+    "Strong unit economics, subscription and enterprise revenue"
+  ],
+  "market_context_signal": "Deep understanding of Indian smart meter market, regulatory drivers, cybersecurity trends, and consumer needs.",
+  "execution_readiness_signal": "Prototype tested with high accuracy; clear hardware/software stack; scalable pricing and subscription model.",
+  "_tokens": {
+    "prompt": 1425,
+    "completion": 129,
+    "total": 1554
+  },
+  "_json_failed": false
+}

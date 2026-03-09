@@ -1,0 +1,260 @@
+Problem Statement
+Problem Statement
+We aim to protect households from the hidden
+threat of false data injection attacks in smart
+grids by providing an accessible , real-time
+anomaly detection system that prevents
+inflated bills, device damage, and privacy
+breaches.
+Problem Statement
+Problem Statement
+Consumer-Level FDIA Vulnerability:
+High Cost & Low Awareness:
+India has installed over 90 million smart
+Households lose an estimated ₹15,000–
+meters (as of 2024), yet consumers lack
+25,000 annually to unexplained device
+protection against False Data Injection
+failures, inflated bills and privacy breaches,
+Attacks (FDIA)—sophisticated hacks that
+with attacks often going undetected.
+falsify power readings.
+Critical Gap in Security:
+Existing utility-scale solutions are too costly
+and focus on grid-level data. Standard
+voltage regulators only handle physical
+fluctuations, leaving millions of smart homes
+defenseless against cyber tampering.
+Truly A Serious Threat
+Truly A Serious Threat
+Existing Solutions And Competition
+Existing Solutions And Competition
+Current Market Gap
+Industrial FDIA detection exists,
+Technical Approaches
+but consumer-level FDIA protection
+is virtually absent despite rising
+IoT/smart meter adoption.
+Enterprise solutions use advanced
+ML/anomaly detection (costing
+General cybersecurity products
+₹15L+), unsuitable for households.
+(McAfee, Norton, Quick Heal)
+protect endpoints but not FDIA
+Consumer cybersecurity lacks
+vulnerabilities in smart grids.
+integration with hardware voltage
+regulation & FDIA detection.
+Existing Solutions And Competition
+Existing Solutions And Competition
+Competitive Landscape
+Enterprise Players (Siemens, ABB): Focus on utility infrastructure.
+Cybersecurity Giants (Fortinet, CyberArk): Offer broad solutions, not smart grid–specific.
+Consumer Brands (e.g., McAfee, Norton): Provide general protection, missing FDIA
+specialization.
+Enterprise Players (Siemens, ABB): Focus on utility infrastructure.
+Existing Solutions And Competition
+Existing Solutions And Competition
+Customer Discovery
+Customer Discovery
+Target Segments
+Tech-Savvy Urban Households Small Businesses
+Sensitive Equipment
+80%+ have high-speed internet
+Face 20–30% potential losses from
+More than 60% own multiple smart
+power quality issues and
+devices
+cybersecurity breaches
+30–40% experience voltage fluctuations
+Higher power consumption
+during peak hours
+magnifies benefits of protection
+Willing to pay a 10–15% premium for
+solutions
+advanced appliance protection
+Customer Discovery
+Customer Discovery
+Target Segment Prioritization
+Customer Discovery
+Customer Discovery
+Core Assumptions (Backed by Data):
+Feature Prioritization: 84% prefer simplified dashboard
+Security-Price Threshold: Studies (TechShots, Allied MR)
+alerts (Deloitte Connected Consumer Survey)
+show premium of ~10–15% is acceptable
+DIY Installation: >75% of urban consumers favor Trust Bridge: 73% of users gain confidence when protection
+plug‑and‑play solutions (Data For India) integrates voltage regulation
+Grid Vulnerability: With rising renewable adoption, Smart Home Market: Statista estimates India’s
+FDIA risks expected to grow by 20–25% smart home market at USD 7.3B (2025)
+Energy & Connectivity: Data For India shows urban reliability >90%; CLASP research details voltage issues
+Customer Discovery
+Customer Discovery
+Consumer Preferences And Market Trends
+Our Solution
+Our Solution
+What Is It?
+Our solution is a device that integrates smart
+voltage regulation with AI-powered detection
+of false data injection attacks (FDIA). It
+continuously monitors household voltage and
+current using precision sensors and uses a
+deep LSTM neural network to predict normal
+power patterns and flag anomalies in real time.
+Our Solution
+Our Solution
+Novel Approach
+Unlike traditional voltage stabilizers that react
+only to fluctuations, our solution proactively
+identifies subtle anomalies using a three-tier
+architecture :
+Edge Monitoring: Real-time sensor data
+acquisition.
+Local Analytics: An LSTM-based engine (3
+layers, 64 units each, with dense layers)
+compares expected vs. actual
+measurements using MSE analysis.
+Distributed Intelligence: An optional
+network of devices sharing anonymized
+threat data to continually refine detection
+accuracy.
+Our Solution
+Our Solution
+Hybrid Static & AI-Driven Detection Architecture
+Detection Architecture
+Detection Architecture
+Test Results
+For Further Reading, Click HERE
+Our Solution
+Our Solution
+Customer Benefits
+By ensuring stable voltage and
+detecting potential cyber
+tampering before damage occurs,
+we protect expensive appliances ,
+prevent energy fraud and deliver
+actionable insights via an intuitive
+dashboard—all while operating
+efficiently on consumer-grade
+hardware.
+Our Solution
+Our Solution
+Our Value Proposition
+Feasilibity And Validation
+Our prototype, validated using the
+UCI Household Electric Power
+Consumption dataset and testbed
+simulations, achieves ~92%
+detection accuracy with <3% false
+positives. This confirms that
+enterprise-level FDIA protection
+can be scaled to the consumer level
+cost-effectively.
+Hardware Components
+Hardware Components
+Hardware Components
+Hardware Components
+Buck/Boost
+ESP32 Microcontroller
+Converter
+SD Card
+Solid State Relay (SSR)
+ESP8266 Wi-Fi Module
+ACS712 Current Sensor
+ZMPT101B Voltage Sensor
+Software Stack
+Software Stack
+Software Stack
+Software Stack
+1. Microcontroller Firmware 4. Visualization & User Interface
+3. Data Processing & ML Model Development
+2. Communication & Cloud Integration
+5. Security & Communication Protocols
+Market Opportunity
+Market Opportunity
+Deployment & Vulnerability
+250M smart meters targeted by
+2025 ₹3,500Cr (~$420M)
+cybersecurity opportunity
+45+ DISCOMs and 250M+
+endpoints face FDIA risks. FDIA
+can cause up to 60% more
+appliance damage
+Market Opportunity
+Market Opportunity
+Timely And Regulated
+National Cybersecurity Strategy
+2023 & BIS’s IS 17855:2022
+mandate grid protection
+CERT-In reports 61% YoY
+increase in power sector
+cyberattacks; FDIA attempts up
+290% globally
+Market Opportunity
+Market Opportunity
+Competitive Gap
+Enterprise solutions
+(Siemens/ABB) cost
+₹15L+
+General brands
+(McAfee, Norton) lack
+Our product: First
+FDIA focus
+consumer solution merging
+voltage stabilization with
+FDIA detection
+Profit Model
+Profit Model
+Revenue Streams
+Unit Economics
+Scalability
+Profit Model
+Profit Model
+Revenue Streams
+Breakdown Of Revenue Streams
+Subscriptions:
+Enterprise contracts:
+₹99–299/month for
+₹2–5L
+advanced
+per deployment
+monitoring
+Hardware: ₹2,500–4,500/unit (40–45%
+margin
+Premium: ₹4,500–7,000 with 50–55%
+margin)
+Profit Model
+Profit Model
+Unit Economics
+Breakdown Of Unit Economics
+Initial R&D: LTV: CAC ~8:1
+₹50L Payback period:
+Unit COGS: 11–14 months; 4-
+~₹1,500 year LTV >₹9,500+
+24-month payback via 35%
+appliance lifespan extension &
+₹12K annual damage prevention
+Profit Model
+Profit Model
+Scalability
+Consumer
+cybersecurity market
+CAGR ~19.4%
+(current penetration
+<5%)
+Favorable regulatory
+drivers and rising
+renewable
+integration (175 GW
+by 2025)
+Profit Model
+Profit Model
+Scalability
+Proposed Implementation Plan
+Proposed Implementation Plan
+Gantt Chart
+Proposed Implementation Plan
+Proposed Implementation Plan
+"Our" Definition of Success
+Why should you back us?
+Why should you back us?

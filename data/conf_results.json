@@ -1,0 +1,62 @@
+{
+  "plastic_patrol": {
+    "Desirability": 9,
+    "Feasibility": 7,
+    "Viability": 8,
+    "average": 8.0,
+    "rationale": [
+      "Clear user segments and urgent health regulatory pain",
+      "Prototype underway; buildable with effort and some risk",
+      "Multiple revenue streams; plausible monetization model"
+    ],
+    "market_context_signal": "Strong understanding of food safety market, regulatory pressures, and early adopter segments with $5B+ TAM identified",
+    "execution_readiness_signal": "Multidisciplinary team with biotech, electronics, AI expertise; prototyping in research phase; aware of certification risks",
+    "_tokens": {
+      "prompt": 1370,
+      "completion": 141,
+      "total": 1511
+    },
+    "_json_failed": false,
+    "_project_name": "plastic_patrol"
+  },
+  "smart_grid": {
+    "Desirability": 9,
+    "Feasibility": 9,
+    "Viability": 8,
+    "average": 8.67,
+    "rationale": [
+      "Clear user, urgent pain, strong evidence",
+      "Prototype validated, affordable hardware, low risk",
+      "Strong unit economics, subscription and enterprise revenue"
+    ],
+    "market_context_signal": "Deep understanding of Indian smart meter market, regulatory drivers, cybersecurity trends, and consumer needs.",
+    "execution_readiness_signal": "Prototype tested with high accuracy; clear hardware/software stack; scalable pricing and subscription model.",
+    "_tokens": {
+      "prompt": 1425,
+      "completion": 129,
+      "total": 1554
+    },
+    "_json_failed": false,
+    "_project_name": "smart_grid"
+  },
+  "tech_crew": {
+    "Desirability": 7,
+    "Feasibility": 8,
+    "Viability": 5,
+    "average": 6.67,
+    "rationale": [
+      "Clear user pain in painting tall surfaces",
+      "Existing drone tech supports feasibility",
+      "Monetization model not clearly defined"
+    ],
+    "market_context_signal": "Identifies safety and efficiency pain in painting industry; references user feedback but lacks detailed demand evidence.",
+    "execution_readiness_signal": "Leverages existing drone tech and simulations; some user feedback indicates practical development approach.",
+    "_tokens": {
+      "prompt": 454,
+      "completion": 124,
+      "total": 578
+    },
+    "_json_failed": false,
+    "_project_name": "tech_crew"
+  }
+}

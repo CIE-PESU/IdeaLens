@@ -1,0 +1,92 @@
+{
+  "TIPSC_Framework": {
+    "metadata": {
+      "source": "Adapted from Technology Ventures: From Idea to Enterprise by Dr. Thomas Byers",
+      "purpose": "To evaluate student-submitted problem statements based on the TIPSC framework — Timely, Important, Profitable, Solvable, Context.",
+      "use_case": "Agno AI Agent Knowledge Base for opportunity evaluation and feedback generation"
+    },
+
+    "elements": {
+      "Timely": {
+        "definition": "A Timely problem is relevant now, not years in the past or future. It represents a current need or issue that demands attention, driven by trends, technology, or socio-economic change.",
+        "meaning": "The problem must show urgency or momentum — something that makes 'now' the right time to address it. It should align with emerging opportunities, shifts, or crises that make the solution relevant.",
+        "indicators": [
+          "Rising awareness or pain among users or communities",
+          "Recent policy, social, or technology shifts enabling new solutions",
+          "Evidence of momentum — growing media coverage, startup activity, or funding interest"
+        ],
+        "rubric": {
+          "Excellent (9-10)": "Compelling urgency tied to current trends or crises; immediate need with visible consequences if unsolved.",
+          "Good (7-8)": "Relevant and growing need, but urgency may not be universal or critical yet.",
+          "Fair (5-6)": "Some awareness exists, but timing or urgency remains unclear.",
+          "Poor (<5)": "No visible urgency or outdated/irrelevant timing."
+        }
+      },
+
+      "Important": {
+        "definition": "An Important problem significantly affects people’s lives, work, or well-being. It represents a pain point that customers or stakeholders genuinely care about.",
+        "meaning": "The importance of a problem comes from its impact — economic, emotional, or social. A good problem is one that truly matters to the target audience and interferes with key goals or needs.",
+        "indicators": [
+          "Problem affects a large, underserved, or vulnerable group",
+          "It causes measurable harm, inefficiency, or lost opportunity",
+          "Stakeholders express strong desire or urgency for a solution"
+        ],
+        "rubric": {
+          "Excellent (9-10)": "Severe or widespread problem deeply impacting users or organizations.",
+          "Good (7-8)": "Moderate importance, causing noticeable inconvenience or inefficiency.",
+          "Fair (5-6)": "Minor or localized problem; only modest impact.",
+          "Poor (<5)": "Trivial or cosmetic issue with little real effect."
+        }
+      },
+
+      "Profitable": {
+        "definition": "A Profitable problem allows for value creation that users, organizations, or society are willing to pay for — financially or through adoption and engagement.",
+        "meaning": "Profitability is about economic or value sustainability. The opportunity should show potential for a viable business, social enterprise, or measurable ROI through time, money, or benefit exchange.",
+        "indicators": [
+          "Evidence of willingness to pay (WTP) or strong adoption intent",
+          "Identifiable and scalable market segment",
+          "Feasible model for revenue, cost recovery, or social value creation"
+        ],
+        "rubric": {
+          "Excellent (9-10)": "Clear, validated market or strong user demand ensuring sustainability or profit.",
+          "Good (7-8)": "Reasonable potential for monetization or sustainable adoption.",
+          "Fair (5-6)": "Uncertain or untested willingness to pay; limited revenue path.",
+          "Poor (<5)": "No clear value exchange or financial viability."
+        }
+      },
+
+      "Solvable": {
+        "definition": "A Solvable problem can be realistically addressed using current or emerging technologies, skills, and resources within a reasonable time frame.",
+        "meaning": "Solvability assesses the feasibility of building or deploying a solution. It should be achievable using accessible means, not requiring major scientific breakthroughs or unrealistic investments.",
+        "indicators": [
+          "Existing technologies or methods can address the challenge",
+          "Feasibility proven by research, prototypes, or pilots",
+          "Resource and capability alignment with the team or environment"
+        ],
+        "rubric": {
+          "Excellent (9-10)": "Clearly solvable with existing or adaptable technology; strong feasibility evidence.",
+          "Good (7-8)": "Potentially solvable, though with some technical or resource risk.",
+          "Fair (5-6)": "Solution unclear or depends on significant research and innovation.",
+          "Poor (<5)": "Currently infeasible or speculative with no clear path."
+        }
+      },
+
+      "Context": {
+        "definition": "Context refers to the external environment — regulatory, cultural, economic, and competitive factors — that influence whether the solution can succeed.",
+        "meaning": "Even a strong idea can fail if the surrounding ecosystem is unsupportive. Favorable context includes enabling policies, social acceptance, available infrastructure, and manageable competition.",
+        "indicators": [
+          "Government or institutional policies supporting innovation",
+          "Adequate technology infrastructure or ecosystem readiness",
+          "Cultural acceptance and alignment with trends or norms",
+          "Favorable competitive or regulatory conditions"
+        ],
+        "rubric": {
+          "Excellent (9-10)": "Highly favorable environment — supportive policies, social demand, and ecosystem alignment.",
+          "Good (7-8)": "Generally favorable with minor risks or barriers.",
+          "Fair (5-6)": "Mixed context; uncertain policies or readiness.",
+          "Poor (<5)": "Restrictive, unsupportive, or conflicting environment."
+        }
+      }
+    }
+  }
+}
