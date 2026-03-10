@@ -490,51 +490,6 @@ export default function IdeaPageClient() {
                                 problemTitle={team.problem_title}
                             />
 
-                            <div className="space-y-2">
-                                <CollapsibleSection title="Submission Objective" icon="🎯" defaultOpen={true}>
-                                    <Section title="Problem Space" text={team.problem_statement} subHeader={team.problem_title} icon={<Target size={18} />} />
-                                    <Section title="Proposed Solution" text={team.proposed_solution} icon={<Zap size={18} />} />
-                                    <BulletRow title="Innovation Highlights" items={team.innovation_highlights} icon={<Sparkles size={18} />} />
-                                </CollapsibleSection>
-
-                                <CollapsibleSection title="Execution & Market" icon="🚀" defaultOpen={false}>
-                                    <Section title="Business Model" text={team.business_model} icon={<TrendingUp size={18} />} />
-                                    <Section title="Market Insight" text={team.market_insight} icon={<Cpu size={18} />} />
-                                    <ChipRow title="TARGET USERS" items={team.target_users} variant="blue" icon={<Target size={18} />} />
-                                    <ChipRow title="TECHNOLOGY STACK" items={team.tech_stack} variant="indigo" icon={<Cpu size={18} />} />
-                                </CollapsibleSection>
-
-                                <CollapsibleSection title="Risk Analysis" icon="🛡️" defaultOpen={false}>
-                                    <Section title="MARKET READINESS" text={team.market_readiness} icon={<TrendingUp size={18} />} />
-                                    <Section title="EXECUTION READINESS / RISK" text={team.execution_risk} icon={<ShieldCheck size={18} />} />
-                                </CollapsibleSection>
-
-                                <CollapsibleSection title="Team Protocol" icon="👥" defaultOpen={false}>
-                                    {(() => {
-                                        const members = Array.isArray(team.team_members) ? team.team_members : (typeof team.team_members === 'string' ? team.team_members.split(',') : []);
-                                        const roles = Array.isArray(team.team_roles) ? team.team_roles : (typeof team.team_roles === 'string' ? team.team_roles.split(',') : []);
-
-                                        return members.map((member: string, idx: number) => {
-                                            const name = member.trim();
-                                            if (!name) return null;
-                                            return (
-                                                <div key={idx} className="flex items-center gap-4 bg-white/50 p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                                    <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-sm italic">
-                                                        {name.charAt(0)}
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-black text-slate-900 text-sm uppercase italic">{name}</span>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                            {(roles[idx] || "Specialist").trim()}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        });
-                                    })()}
-                                </CollapsibleSection>
-                            </div>
-
                             {/* JURY SCORING BOARD */}
                             <div className="rounded-[2.5rem] bg-white border border-slate-200 shadow-xl p-10 overflow-hidden relative">
                                 <div className="absolute top-0 left-0 w-full h-1.5 bg-brand-accent"></div>
@@ -611,9 +566,9 @@ export default function IdeaPageClient() {
                                                 if (team) await refreshData(team, team.team_id);
                                                 setAiRevealed(true);
                                             }}
-                                            className="px-10 py-5 rounded-2xl bg-brand-accent hover:bg-brand-accent/90 text-white font-black text-sm uppercase italic tracking-[0.2em] shadow-2xl transition-all active:scale-95 flex items-center gap-3"
+                                            className="px-10 py-5 rounded-2xl bg-brand-accent hover:bg-brand-accent/90 text-white font-black text-sm uppercase italic tracking-[0.2em] shadow-2xl transition-all active:scale-95 flex items-center justify-center text-center"
                                         >
-                                            <Sparkles size={18} /> AI SCORE
+                                            AI SCORE
                                         </button>
                                     )}
 
@@ -624,6 +579,53 @@ export default function IdeaPageClient() {
                                         Back
                                     </button>
                                 </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <CollapsibleSection title="Team Details" icon={<Cpu size={18} />} defaultOpen={false}>
+                                    <CollapsibleSection title="Submission Objective" icon="🎯" defaultOpen={true}>
+                                        <Section title="Problem Space" text={team.problem_statement} subHeader={team.problem_title} icon={<Target size={18} />} />
+                                        <Section title="Proposed Solution" text={team.proposed_solution} icon={<Zap size={18} />} />
+                                        <BulletRow title="Innovation Highlights" items={team.innovation_highlights} icon={<Sparkles size={18} />} />
+                                    </CollapsibleSection>
+
+                                    <CollapsibleSection title="Execution & Market" icon="🚀" defaultOpen={false}>
+                                        <Section title="Business Model" text={team.business_model} icon={<TrendingUp size={18} />} />
+                                        <Section title="Market Insight" text={team.market_insight} icon={<Cpu size={18} />} />
+                                        <ChipRow title="TARGET USERS" items={team.target_users} variant="blue" icon={<Target size={18} />} />
+                                        <ChipRow title="TECHNOLOGY STACK" items={team.tech_stack} variant="indigo" icon={<Cpu size={18} />} />
+                                    </CollapsibleSection>
+
+                                    <CollapsibleSection title="Risk Analysis" icon="🛡️" defaultOpen={false}>
+                                        <Section title="MARKET READINESS" text={team.market_readiness} icon={<TrendingUp size={18} />} />
+                                        <Section title="EXECUTION READINESS / RISK" text={team.execution_risk} icon={<ShieldCheck size={18} />} />
+                                    </CollapsibleSection>
+
+                                    <CollapsibleSection title="Team Protocol" icon="👥" defaultOpen={false}>
+                                        {(() => {
+                                            const members = Array.isArray(team.team_members) ? team.team_members : (typeof team.team_members === 'string' ? team.team_members.split(',') : []);
+                                            const roles = Array.isArray(team.team_roles) ? team.team_roles : (typeof team.team_roles === 'string' ? team.team_roles.split(',') : []);
+
+                                            return members.map((member: string, idx: number) => {
+                                                const name = member.trim();
+                                                if (!name) return null;
+                                                return (
+                                                    <div key={idx} className="flex items-center gap-4 bg-white/50 p-4 rounded-2xl border border-slate-100 shadow-sm mt-4">
+                                                        <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-sm italic">
+                                                            {name.charAt(0)}
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-black text-slate-900 text-sm uppercase italic">{name}</span>
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                                                {(roles[idx] || "Specialist").trim()}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            });
+                                        })()}
+                                    </CollapsibleSection>
+                                </CollapsibleSection>
                             </div>
                         </div>
 
