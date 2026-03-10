@@ -289,8 +289,8 @@ function TeamDetailsContent() {
                                             <div className="flex flex-col items-end gap-1">
                                                 <span className="text-3xl font-black italic text-slate-900 group-hover:scale-110 transition-transform leading-none">{juryScores[field.key]}</span>
                                                 {jurySubmitted && aiEval?.[field.aiKey] && (
-                                                    <span className="text-[9px] font-black text-brand-accent tracking-[0.1em] uppercase flex items-center gap-1 bg-brand-accent/5 px-2 py-1 rounded-md">
-                                                        <Sparkles size={8} /> AI: {aiEval[field.aiKey]}
+                                                    <span className="text-[10px] font-black text-brand-accent tracking-[0.1em] uppercase flex items-center gap-1.5 bg-brand-accent/10 px-2.5 py-1 rounded-md">
+                                                        <Sparkles size={10} /> <span className="opacity-70 font-bold">AI:</span> <span className="text-xs">{aiEval[field.aiKey]}</span>
                                                     </span>
                                                 )}
                                             </div>
