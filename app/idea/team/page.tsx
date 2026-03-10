@@ -414,7 +414,7 @@ function TeamDetailsContent() {
                             </span>
                         </summary>
                         <div className="p-16">
-                            <div className="flex flex-col gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                 {Object.entries(submission).map(([key, value]) => {
                                     // Exclude metadata keys and specific requested keys
                                     const excludedKeys = [
@@ -431,7 +431,7 @@ function TeamDetailsContent() {
                                     if (excludedKeys.includes(key) || key.startsWith('preferred_') || key === 'consent_box') return null;
 
                                     return (
-                                        <details key={key} className="group/item border border-slate-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all">
+                                        <details key={key} className="group/item border border-slate-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all h-fit">
                                             <summary className="cursor-pointer px-8 py-6 flex items-center justify-between transition-colors select-none group-open/item:bg-slate-50 group-open/item:rounded-t-2xl">
                                                 <span className="text-sm font-black uppercase tracking-[0.2em] text-slate-800">
                                                     {formatLabel(key)}
