@@ -287,11 +287,6 @@ function TeamDetailsContent() {
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
                                             <span className="text-3xl font-black italic text-slate-900 group-hover:scale-110 transition-transform leading-none">{juryScores[field.key]}</span>
-                                            {jurySubmitted && aiEval?.[field.aiKey] && (
-                                                <span className="text-[10px] font-black text-brand-accent tracking-[0.1em] uppercase flex items-center gap-1.5 bg-brand-accent/10 px-2.5 py-1 rounded-md">
-                                                    <Sparkles size={10} /> <span className="opacity-70 font-bold">AI:</span> <span className="text-xs">{aiEval[field.aiKey]}</span>
-                                                </span>
-                                            )}
                                         </div>
                                     </div>
                                     <div className="relative pt-2">
@@ -309,6 +304,16 @@ function TeamDetailsContent() {
                                             <span className="text-[9px] font-bold text-slate-200">0</span>
                                             <span className="text-[9px] font-bold text-slate-200">10</span>
                                         </div>
+
+                                        {jurySubmitted && aiEval?.[field.aiKey] && (
+                                            <div className="mt-8 flex justify-center border-t border-slate-100/80 pt-6">
+                                                <span className="text-base font-black text-brand-accent tracking-[0.1em] uppercase flex items-center justify-center gap-3 bg-brand-accent/10 px-6 py-2 rounded-xl w-full">
+                                                    <Sparkles size={16} />
+                                                    <span className="opacity-90 font-bold text-[10px] tracking-widest">AI SCORE:</span>
+                                                    <span className="text-2xl font-black italic leading-none">{aiEval[field.aiKey]}</span>
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -372,19 +377,16 @@ function TeamDetailsContent() {
                     </div>
                 </section>
 
-                {/* --- SIGNALS (Collapsible) --- */}
+                {/* --- SIGNALS (Non-Collapsible) --- */}
                 {(aiEval?.market_context_signal || aiEval?.execution_readiness_signal || submission?.market_context_signal || submission?.execution_readiness_signal) && (
                     <section className="mb-24 pt-12 border-t border-slate-200">
-                        <details className="group bg-white border border-slate-100 rounded-[3rem] shadow-sm overflow-hidden hover:shadow-md transition-all duration-500">
-                            <summary className="cursor-pointer p-10 flex items-center justify-between text-4xl font-black uppercase italic tracking-tight text-slate-900 border-b border-transparent group-open:border-slate-100 group-open:bg-slate-50/50 transition-colors select-none">
+                        <div className="group bg-white border border-slate-100 rounded-[3rem] shadow-sm overflow-hidden hover:shadow-md transition-all duration-500">
+                            <div className="p-10 flex items-center justify-between text-4xl font-black uppercase italic tracking-tight text-slate-900 border-b border-transparent transition-colors select-none">
                                 <span className="flex items-center gap-6">
                                     <div className="h-12 w-2 bg-brand-accent rounded-full"></div>
                                     SIGNALS
                                 </span>
-                                <span className="transition-transform duration-300 group-open:-rotate-180 text-slate-400">
-                                    <ChevronDown size={40} />
-                                </span>
-                            </summary>
+                            </div>
                             <div className="p-16">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                     {['market_context_signal', 'execution_readiness_signal'].map((key) => {
@@ -406,7 +408,7 @@ function TeamDetailsContent() {
                                     })}
                                 </div>
                             </div>
-                        </details>
+                        </div>
                     </section>
                 )}
 
