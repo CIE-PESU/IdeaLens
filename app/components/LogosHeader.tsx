@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export default function LogosHeader() {
     return (
-        <div className="w-full px-6 pt-0 pb-2">
+        <div className="w-full px-6 pt-0 pb-1">
             <div className="grid grid-cols-3 items-center w-full">
 
                 {/* PES - Left */}

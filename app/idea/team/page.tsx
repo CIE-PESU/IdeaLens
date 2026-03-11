@@ -228,7 +228,7 @@ function TeamDetailsContent() {
     return (
         <div className="relative min-h-screen bg-slate-50 font-sans text-slate-900 text-[17px] selection:bg-brand-accent/30 selection:text-white">
             {/* --- UNIFIED HEADER --- */}
-            <header className="w-full px-6 md:px-12 py-3 flex items-center justify-between" style={{ zoom: 0.9 }}>
+            <header className="w-full px-6 md:px-12 pt-0 pb-2 flex items-center justify-between" style={{ zoom: 0.9 }}>
                 <div className="flex items-center gap-8 md:gap-12 w-1/3">
                     <button
                         onClick={() => router.push('/')}
