@@ -66,7 +66,7 @@ function TeamDetailsContent() {
     const [error, setError] = useState<string | null>(null);
 
     // Jury Form State
-    const [juryScores, setJuryScores] = useState({ d: 5, f: 5, v: 5 });
+    const [juryScores, setJuryScores] = useState<any>({ d: "", f: "", v: "", p: "" });
     const [juryFeedback, setJuryFeedback] = useState("");
     const [submittingJury, setSubmittingJury] = useState(false);
     const [jurySubmitted, setJurySubmitted] = useState(false);
@@ -142,9 +142,10 @@ function TeamDetailsContent() {
                 .insert({
                     idea_id: id,
                     team_name: submission.team_name,
-                    desirability_score: Math.round(juryScores.d),
-                    feasibility_score: Math.round(juryScores.f),
-                    viability_score: Math.round(juryScores.v),
+                    desirability_score: juryScores.d ? Math.round(Number(juryScores.d)) : null,
+                    feasibility_score: juryScores.f ? Math.round(Number(juryScores.f)) : null,
+                    viability_score: juryScores.v ? Math.round(Number(juryScores.v)) : null,
+                    // Note: presentation_score is omitted from insert if the DB doesn't have it, but it's tracked in state.
                     overall_comments: juryFeedback,
                     evaluated_at: new Date().toISOString()
                 });
@@ -175,7 +176,9 @@ function TeamDetailsContent() {
     };
 
     const juryAvg = useMemo(() => {
-        return ((juryScores.d + juryScores.f + juryScores.v) / 3).toFixed(2);
+        const scores = [Number(juryScores.d), Number(juryScores.f), Number(juryScores.v), Number(juryScores.p)].filter(v => !isNaN(v) && v > 0);
+        if (scores.length === 0) return "0.00";
+        return (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
     }, [juryScores]);
 
     const aiAvg = aiEval ? Number(aiEval.average_dfv_score).toFixed(2) : null;
@@ -358,92 +361,74 @@ function TeamDetailsContent() {
                         
                         {/* --- JURY SCORE BOARD --- */}
                         <div className="bg-white/85 backdrop-blur-[12px] rounded-[20px] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.08)] text-slate-900" style={{ border: '1px solid rgba(0,0,0,0.05)' }}>
-                            <h2 className="text-lg font-black italic tracking-tight mb-4">Jury Scoring</h2>
+                            <h2 className="text-[#0F1E2E] text-2xl font-bold mb-6">Jury Scoring Board</h2>
                             
-                            {/* COMPACT DFV GRID */}
-                            <div className="space-y-2.5">
+                            {/* 4-CARD GRID */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4">
                                 {[
-                                    { label: "Desirability", key: "d" as const, aiKey: "desirability_score", icon: <Heart size={14} className="text-amber-400" />, color: "bg-slate-50/50 border-slate-200" },
-                                    { label: "Feasibility", key: "f" as const, aiKey: "feasibility_score", icon: <Hammer size={14} className="text-emerald-400" />, color: "bg-slate-50/50 border-slate-200" },
-                                    { label: "Viability", key: "v" as const, aiKey: "viability_score", icon: <TrendingUp size={14} className="text-indigo-400" />, color: "bg-slate-50/50 border-slate-200" },
+                                    { label: "DESIRABILITY", key: "d" as const, aiKey: "desirability_score", icon: "🖤", isManual: false },
+                                    { label: "FEASIBILITY", key: "f" as const, aiKey: "feasibility_score", icon: "🛠️", isManual: false },
+                                    { label: "VIABILITY", key: "v" as const, aiKey: "viability_score", icon: "💰", isManual: false },
+                                    { label: "PRESENTATION", key: "p" as const, aiKey: null, icon: "🎤", isManual: true },
                                 ].map((field) => (
-                                    <div key={field.key} className={`p-3 rounded-xl border ${field.color} flex flex-col gap-1.5 relative overflow-hidden group hover:bg-slate-50 transition-colors`}>
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-slate-500">
-                                                {field.icon}
-                                                {field.label}
-                                            </div>
-                                            <span className="text-lg font-black italic">{juryScores[field.key]}</span>
+                                    <div key={field.key} className="bg-white rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 flex flex-col gap-4">
+                                        <div className="flex justify-between items-center text-sm font-black text-[#0F1E2E] uppercase tracking-widest">
+                                            {field.label}
+                                            <span className="text-xl">{field.icon}</span>
                                         </div>
                                         
-                                        <div className="relative pt-1 pb-1">
+                                        <div className="flex flex-col items-center justify-center pt-2 pb-4">
                                             <input
-                                                type="range"
-                                                min="0"
-                                                max="10"
-                                                step="0.5"
+                                                type="text"
                                                 disabled={jurySubmitted}
                                                 value={juryScores[field.key]}
-                                                onChange={(e) => setJuryScores({ ...juryScores, [field.key]: parseFloat(e.target.value) })}
-                                                className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                onChange={(e) => setJuryScores({ ...juryScores, [field.key]: e.target.value })}
+                                                className="w-16 text-center text-3xl font-black text-[#0F1E2E] bg-transparent focus:outline-none mb-1 disabled:opacity-50"
+                                                placeholder=""
                                             />
+                                            <div className="w-16 h-px bg-slate-200 mb-2"></div>
+                                            <span className="text-xs font-medium text-slate-400">/ 10</span>
                                         </div>
 
-                                        {jurySubmitted && aiEval?.[field.aiKey] && (
-                                            <div className="flex items-center justify-between border-t border-slate-200 pt-1.5 mt-1">
-                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-brand-accent tracking-widest">
-                                                    <Sparkles size={10} /> Ai score
-                                                </div>
-                                                <span className="text-xs font-black italic text-brand-accent">{aiEval[field.aiKey]}</span>
-                                            </div>
-                                        )}
+                                        <div className="border-t border-dashed border-slate-200 pt-3 flex items-center justify-between">
+                                            {!field.isManual ? (
+                                                <>
+                                                    <span className="text-xs font-medium text-slate-400">AI Score</span>
+                                                    <span className="text-sm font-black text-[#0F1E2E]">{jurySubmitted && field.aiKey && aiEval?.[field.aiKey as string] ? aiEval[field.aiKey as string] : "—"}</span>
+                                                </>
+                                            ) : (
+                                                <span className="text-xs font-medium italic text-slate-400 w-full text-center tracking-wide">Manual entry only</span>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="mt-5 pt-5 border-t border-slate-200 space-y-3">
-                                {/* AI OVERVIEW SUMMARY */}
-                                {!jurySubmitted ? (
-                                    <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 flex flex-col items-center justify-center gap-2">
-                                        <AlertTriangle size={18} className="text-slate-400" />
-                                        <h3 className="text-[11px] font-black tracking-[0.1em] text-slate-500 text-center">Ai analysis encrypted</h3>
-                                    </div>
-                                ) : (
-                                    <div className="bg-brand-accent/10 border border-brand-accent/20 rounded-xl p-4 relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-3 opacity-10">
-                                            <Sparkles size={40} />
-                                        </div>
-                                        <div className="relative z-10 space-y-2.5">
-                                            <div className="flex justify-between items-center bg-white/60 rounded-lg p-2.5">
-                                                <span className="text-[11px] font-black tracking-widest text-brand-accent flex items-center gap-1.5">
-                                                    <Sparkles size={12} /> Ai avg
-                                                </span>
-                                                <span className="text-lg font-black italic text-slate-900">{aiAvg || "N/A"}</span>
-                                            </div>
-                                            
-                                            {aiAvg && (
-                                                <div className="flex justify-between items-center bg-white/60 rounded-lg p-2.5">
-                                                    <span className="text-[11px] font-bold tracking-widest text-slate-500">Variance</span>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="text-sm font-black italic text-slate-900">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
+                            <div className="mt-6 pt-5 space-y-3">
                                 {!jurySubmitted ? (
                                     <button
                                         onClick={handleJurySubmit}
                                         disabled={submittingJury}
-                                        className="w-full py-3 rounded-xl bg-brand-accent text-white font-black text-[11px] italic tracking-widest shadow-lg hover:bg-brand-blue transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+                                        className="w-full py-3 rounded-xl bg-brand-accent text-white font-black text-[11px] uppercase tracking-widest shadow-lg hover:bg-brand-blue transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
                                     >
                                         {submittingJury ? "Submitting..." : "Submit verification"}
                                     </button>
                                 ) : (
-                                    <div className="w-full py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-black text-[11px] italic tracking-widest flex items-center justify-center gap-2">
+                                    <div className="w-full py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2">
                                         <CheckCircle2 size={14} /> Verdict registered
+                                    </div>
+                                )}
+
+                                {jurySubmitted && aiAvg && (
+                                    <div className="bg-brand-accent/5 rounded-xl p-4 mt-4 flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black tracking-widest text-[#0F1E2E] uppercase">Ai avg</span>
+                                            <span className="text-lg font-black text-[#0F1E2E]">{aiAvg}</span>
+                                        </div>
+                                        <div className="flex flex-col text-right">
+                                            <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Variance</span>
+                                            <span className="text-sm font-black text-slate-900">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
+                                        </div>
                                     </div>
                                 )}
                             </div>
