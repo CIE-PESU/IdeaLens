@@ -40,8 +40,23 @@ async function inspect() {
 
     // Check idealens_submissions2 (for ref)
     const { data: subData, error: subError } = await supabase.from('idealens_submissions2').select('*').limit(1);
-    if (subData && subData.length > 0) {
+    if (subError) {
+        console.log("idealens_submissions2 Error:", subError.message);
+    } else if (subData && subData.length > 0) {
         console.log("idealens_submissions2 Columns:", Object.keys(subData[0]).join(', '));
+        console.log("idealens_submissions2 Row Sample:", JSON.stringify(subData[0]));
+    } else {
+        console.log("idealens_submissions2 is EMPTY.");
+    }
+
+    // Check idea_submissions (old?)
+    const { data: oldData, error: oldError } = await supabase.from('idea_submissions').select('*').limit(1);
+    if (oldError) {
+        console.log("idea_submissions Error:", oldError.message);
+    } else if (oldData && oldData.length > 0) {
+        console.log("idea_submissions is NOT empty.");
+    } else {
+        console.log("idea_submissions is EMPTY or missing.");
     }
 }
 
