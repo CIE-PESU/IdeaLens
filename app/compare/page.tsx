@@ -12,7 +12,7 @@ export default function ComparisonPage() {
 
     useEffect(() => {
         const fetchTeams = async () => {
-            const { data } = await supabase.from("idea_submissions").select("team_id, team_name");
+            const { data } = await supabase.from("idealens_submissions2").select("id, team_name");
             setTeams(data || []);
         };
         fetchTeams();
@@ -54,7 +54,7 @@ export default function ComparisonPage() {
                             className="w-full glass-card p-6 outline-none font-black uppercase text-sm italic tracking-widest text-brand-blue"
                         >
                             <option value="">SELECT INTELLIGENCE NODE</option>
-                            {teams.map(t => <option key={t.team_id} value={t.team_id}>{t.team_name}</option>)}
+                            {teams.map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
                         </select>
 
                         {data[idx] ? (
