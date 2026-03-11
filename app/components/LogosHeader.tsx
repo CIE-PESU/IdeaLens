@@ -14,7 +14,7 @@ export default function LogosHeader() {
                         alt="PES"
                         width={800}
                         height={900}
-                        className="h-16 md:h-20 lg:h-28 w-auto object-contain"
+                        className="h-28 md:h-36 lg:h-48 w-auto object-contain"
                         priority
                     />
                 </div>
