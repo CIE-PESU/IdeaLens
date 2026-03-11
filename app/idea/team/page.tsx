@@ -396,7 +396,7 @@ function TeamDetailsContent() {
                                 ))}
                             </div>
 
-                            <div className="space-y-3 px-1">
+                            <div className="flex flex-wrap items-center gap-3 px-1 mt-2">
                                 {!jurySubmitted ? (
                                     <button
                                         onClick={handleJurySubmit}
@@ -406,20 +406,21 @@ function TeamDetailsContent() {
                                         {submittingJury ? "Submitting..." : "Submit verification"}
                                     </button>
                                 ) : (
-                                    <div className="w-full py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2">
+                                    <div className="px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 w-fit">
                                         <CheckCircle2 size={14} /> Verdict registered
                                     </div>
                                 )}
 
                                 {jurySubmitted && aiAvg && (
-                                    <div className="bg-brand-accent/5 rounded-xl p-4 flex items-center justify-between border border-brand-accent/10">
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-black tracking-widest text-[#0F1E2E] uppercase">Ai avg</span>
-                                            <span className="text-lg font-black text-[#0F1E2E]">{aiAvg}</span>
+                                    <div className="bg-brand-accent/5 rounded-xl px-4 py-2 flex items-center gap-4 border border-brand-accent/10 w-fit">
+                                        <div className="flex flex-row items-center gap-2">
+                                            <span className="text-[9px] font-black tracking-widest text-[#0F1E2E] uppercase">Ai avg</span>
+                                            <span className="text-sm font-black text-[#0F1E2E] leading-none">{aiAvg}</span>
                                         </div>
-                                        <div className="flex flex-col text-right">
-                                            <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Variance</span>
-                                            <span className="text-sm font-black text-slate-900">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
+                                        <div className="w-px h-4 bg-brand-accent/20"></div>
+                                        <div className="flex flex-row items-center gap-2">
+                                            <span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">Variance</span>
+                                            <span className="text-sm font-black text-slate-900 leading-none">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
                                         </div>
                                     </div>
                                 )}
