@@ -279,13 +279,13 @@ function TeamDetailsContent() {
                         </section>
 
                         {/* --- SIGNALS --- */}
-                        {(aiEval?.market_context_signal || aiEval?.execution_readiness_signal || submission?.market_context_signal || submission?.execution_readiness_signal || submission?.problem_description || submission?.problem_statement_short) && (
+                        {(aiEval?.market_context_signal || aiEval?.execution_readiness_signal || submission?.market_context_signal || submission?.execution_readiness_signal || submission?.problem_statement) && (
                             <section className="mt-4">
                                 <div className="flex items-center gap-3 mb-4">
                                     <h2 className="text-2xl font-black italic tracking-tight text-slate-900">Signals</h2>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {['market_context_signal', 'execution_readiness_signal', 'problem_description', 'problem_statement_short'].map((key) => {
+                                    {['market_context_signal', 'execution_readiness_signal', 'problem_statement'].map((key) => {
                                         const value = aiEval?.[key] || submission?.[key];
                                         if (!value) return null;
 
@@ -320,7 +320,7 @@ function TeamDetailsContent() {
                                         const excludedKeys = [
                                             'id', 'team_name', 'project_title', 'created_at', 'updated_at', 
                                             'submitted_at', 'email', 'track_vertical', 'team_members', 'primary_contact', 
-                                            'problem_statement_short', 'problem_description', 'problem_statement', 
+                                            'problem_statement', 
                                             'pretotyping_done', 'pretypes_used', 'pretotype_experiment_description', 
                                             'users_interacted_count', 'key_insights_pivots', 'team_advantage', 
                                             'pitch_deck_pdf', 'demo_link', 'preferred_day_16_march', 
