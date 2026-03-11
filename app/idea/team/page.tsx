@@ -292,7 +292,7 @@ function TeamDetailsContent() {
                                         return (
                                             <div key={key} className="flex flex-col border-l-2 border-slate-100 pl-6 py-1">
                                                 <div className="pb-1">
-                                                    <span className="text-[13px] font-black tracking-[0.15em] text-slate-400 uppercase">
+                                                    <span className="text-[14px] font-black tracking-[0.15em] text-slate-900 uppercase">
                                                         {formatLabel(key)}
                                                     </span>
                                                 </div>
@@ -330,7 +330,7 @@ function TeamDetailsContent() {
 
                                             return (
                                                 <div key={key} className="flex flex-col gap-1.5 h-fit">
-                                                    <span className="text-[11px] font-black tracking-widest text-slate-400 uppercase">
+                                                    <span className="text-[12px] font-black tracking-widest text-slate-900 uppercase">
                                                         {formatLabel(key)}
                                                     </span>
                                                     <div className="text-[13px] font-semibold text-slate-700 leading-snug">
@@ -357,7 +357,7 @@ function TeamDetailsContent() {
                                     ].map((field) => (
                                         <div key={field.key} className="bg-white rounded-[20px] border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] p-5 flex flex-row items-center justify-between gap-6 transition-transform hover:scale-[1.01] overflow-hidden group">
                                             <div className="flex flex-col gap-1 min-w-[120px]">
-                                                <div className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                                                <div className="flex items-center gap-2 text-[12px] font-black text-slate-900 uppercase tracking-widest leading-none">
                                                     <span className="text-lg opacity-80 group-hover:opacity-100 transition-opacity">{field.icon}</span>
                                                     {field.label}
                                                 </div>
@@ -412,7 +412,7 @@ function TeamDetailsContent() {
                                                         <span className="text-xl font-black text-brand-accent italic">{aiAvg}</span>
                                                     </div>
                                                     <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between">
-                                                        <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Variance</span>
+                                                        <span className="text-[11px] font-bold tracking-widest text-slate-900 uppercase">Variance</span>
                                                         <span className="text-base font-black text-slate-900 border-b-2 border-slate-100">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
                                                     </div>
                                                 </div>
