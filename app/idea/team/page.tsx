@@ -250,55 +250,53 @@ function TeamDetailsContent() {
             </header>
 
             <main className="w-full max-w-[1700px] mx-auto px-6 lg:px-12 mt-6 pb-20" style={{ zoom: 0.9 }}>
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                <div className="flex flex-col gap-12">
                     
-                    {/* ========================================================= */}
-                    {/* LEFT COLUMN: Identity, Signals, Team Details */}
-                    {/* ========================================================= */}
-                    <div className="xl:col-span-9 flex flex-col gap-6">
-                        
-                        {/* --- TEAM IDENTITY SECTION --- */}
-                        <section className="flex items-start gap-4">
-                            <div className="h-14 w-1.5 mt-2 bg-brand-accent rounded-full shrink-0"></div>
-                            <div className="space-y-3 flex-1">
-                                <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 italic tracking-tighter leading-none">
-                                        {submission.team_name}
-                                    </h1>
-                                    {jurySubmitted && (
-                                        <div className="bg-emerald-50 text-emerald-600 font-bold text-sm px-3 py-1.5 rounded-md tracking-wider flex items-center gap-1.5 shadow-sm border border-emerald-100 w-fit">
-                                            <CheckCircle2 size={14} />
-                                            Evaluated
-                                        </div>
-                                    )}
-                                </div>
-                                {submission.project_title && submission.project_title !== submission.team_name && (
-                                    <p className="text-xl font-bold text-slate-500 italic tracking-tight opacity-90">
-                                        {submission.project_title}
-                                    </p>
+                    {/* --- TEAM IDENTITY SECTION --- */}
+                    <section className="flex items-start gap-4">
+                        <div className="h-14 w-1.5 mt-2 bg-brand-accent rounded-full shrink-0"></div>
+                        <div className="space-y-3 flex-1">
+                            <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                <h1 className="text-4xl md:text-5xl font-black text-slate-900 italic tracking-tighter leading-none">
+                                    {submission.team_name}
+                                </h1>
+                                {jurySubmitted && (
+                                    <div className="bg-emerald-50 text-emerald-600 font-bold text-sm px-3 py-1.5 rounded-md tracking-wider flex items-center gap-1.5 shadow-sm border border-emerald-100 w-fit">
+                                        <CheckCircle2 size={14} />
+                                        Evaluated
+                                    </div>
                                 )}
                             </div>
-                        </section>
+                            {submission.project_title && submission.project_title !== submission.team_name && (
+                                <p className="text-xl font-bold text-slate-500 italic tracking-tight opacity-90">
+                                    {submission.project_title}
+                                </p>
+                            )}
+                        </div>
+                    </section>
 
-                        {/* --- SIGNALS --- */}
-                        {(aiEval?.market_context_signal || aiEval?.execution_readiness_signal || submission?.market_context_signal || submission?.execution_readiness_signal || submission?.problem_description) && (
-                            <section className="mt-4">
-                                <div className="flex items-center gap-3 mb-4">
+                    {/* --- PARALLEL SIGNALS & SCORING --- */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                        
+                        {/* LEFT: SIGNALS STACK */}
+                        <div className="lg:col-span-7 flex flex-col gap-10">
+                            <section>
+                                <div className="flex items-center gap-3 mb-6">
                                     <h2 className="text-2xl font-black italic tracking-tight text-slate-900">Signals</h2>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-8">
                                     {['market_context_signal', 'execution_readiness_signal', 'problem_description'].map((key) => {
                                         const value = aiEval?.[key] || submission?.[key];
                                         if (!value) return null;
 
                                         return (
-                                            <div key={key} className="flex flex-col">
-                                                <div className="py-2">
-                                                    <span className="text-[14px] font-black tracking-widest text-slate-800">
+                                            <div key={key} className="flex flex-col border-l-2 border-slate-100 pl-6 py-1">
+                                                <div className="pb-1">
+                                                    <span className="text-[13px] font-black tracking-[0.15em] text-slate-400 uppercase">
                                                         {formatLabel(key)}
                                                     </span>
                                                 </div>
-                                                <div className="py-2 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap font-medium flex-1">
+                                                <div className="text-[15px] leading-relaxed text-slate-700 whitespace-pre-wrap font-medium">
                                                     {renderValue(value)}
                                                 </div>
                                             </div>
@@ -306,127 +304,124 @@ function TeamDetailsContent() {
                                     })}
                                 </div>
                             </section>
-                        )}
 
-                        {/* --- SUBMISSION DATA (Team Details, Collapsible) --- */}
-                        <details className="group overflow-hidden transition-all duration-300 mt-4">
-                            <summary className="cursor-pointer py-4 flex items-center justify-between text-2xl font-black italic tracking-tight text-slate-900 border-b border-slate-300 transition-colors select-none">
-                                Team Details
-                                <span className="transition-transform duration-300 group-open:-rotate-180 text-slate-400">
-                                    <ChevronDown size={24} />
-                                </span>
-                            </summary>
-                            <div className="py-6">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-                                    {Object.entries(submission).map(([key, value]) => {
-                                        const excludedKeys = [
-                                            'id', 'team_name', 'project_title', 'created_at', 'updated_at', 
-                                            'submitted_at', 'email', 'track_vertical', 'team_members', 'primary_contact', 
-                                            'problem_description', 
-                                            'pretotyping_done', 'pretypes_used', 'pretotype_experiment_description', 
-                                            'users_interacted_count', 'key_insights_pivots', 'team_advantage', 
-                                            'pitch_deck_pdf', 'demo_link', 'preferred_day_16_march', 
-                                            'preferred_day_17_march', 'preferred_day_18_march', 'preferred_day_any', 
-                                            'consent_box'
-                                        ];
-                                        if (excludedKeys.includes(key) || key.startsWith('preferred_') || key === 'consent_box') return null;
+                            {/* --- SUBMISSION DATA (Team Details, Collapsible) --- */}
+                            <details className="group overflow-hidden transition-all duration-300 mt-4 border-t border-slate-100">
+                                <summary className="cursor-pointer py-6 flex items-center justify-between text-2xl font-black italic tracking-tight text-slate-900 transition-colors select-none">
+                                    Team Details
+                                    <span className="transition-transform duration-300 group-open:-rotate-180 text-slate-400">
+                                        <ChevronDown size={24} />
+                                    </span>
+                                </summary>
+                                <div className="pb-10 pt-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+                                        {Object.entries(submission).map(([key, value]) => {
+                                            const excludedKeys = [
+                                                'id', 'team_name', 'project_title', 'created_at', 'updated_at', 
+                                                'submitted_at', 'email', 'track_vertical', 'team_members', 'primary_contact', 
+                                                'problem_description', 
+                                                'pretotyping_done', 'pretypes_used', 'pretotype_experiment_description', 
+                                                'users_interacted_count', 'key_insights_pivots', 'team_advantage', 
+                                                'pitch_deck_pdf', 'demo_link', 'preferred_day_16_march', 
+                                                'preferred_day_17_march', 'preferred_day_18_march', 'preferred_day_any', 
+                                                'consent_box'
+                                            ];
+                                            if (excludedKeys.includes(key) || key.startsWith('preferred_') || key === 'consent_box') return null;
 
-                                        return (
-                                            <details key={key} className="group/item transition-all h-fit">
-                                                <summary className="cursor-pointer py-2 flex items-center justify-between transition-colors select-none">
-                                                    <span className="text-[14px] font-black tracking-widest text-slate-800">
+                                            return (
+                                                <div key={key} className="flex flex-col gap-1.5 h-fit">
+                                                    <span className="text-[11px] font-black tracking-widest text-slate-400 uppercase">
                                                         {formatLabel(key)}
                                                     </span>
-                                                    <span className="transition-transform duration-200 group-open/item:-rotate-180 text-slate-400">
-                                                        <ChevronDown size={16} />
-                                                    </span>
-                                                </summary>
-                                                <div className="pb-4 pt-2 text-sm leading-relaxed text-slate-700">
-                                                    {renderValue(value)}
+                                                    <div className="text-[13px] font-semibold text-slate-700 leading-snug">
+                                                        {renderValue(value)}
+                                                    </div>
                                                 </div>
-                                            </details>
-                                        );
-                                    })}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
-                        </details>
-
-                    </div>
-
-                    {/* ========================================================= */}
-                    {/* RIGHT COLUMN: DFV Grid, AI Score */}
-                    {/* ========================================================= */}
-                    <div className="xl:col-span-3 flex flex-col gap-6 h-fit self-start xl:sticky xl:top-6">
-                        
-                        {/* --- JURY SCORE BOARD (No Outer Container) --- */}
-                        <div className="flex flex-col gap-4">
-                            <h2 className="text-[#0F1E2E] text-2xl font-bold px-2">Jury Scoring Board</h2>
-                            
-                            {/* DYNAMIC DFV GRID - All in one row */}
-                            <div className="flex flex-row gap-3 w-full overflow-x-auto pb-2">
-                                {[
-                                    { label: "DESIRABILITY", key: "d" as const, aiKey: "desirability_score", icon: "🖤", isManual: false },
-                                    { label: "FEASIBILITY", key: "f" as const, aiKey: "feasibility_score", icon: "🛠️", isManual: false },
-                                    { label: "VIABILITY", key: "v" as const, aiKey: "viability_score", icon: "💰", isManual: false },
-                                ].map((field) => (
-                                    <div key={field.key} className="bg-white rounded-[16px] border border-slate-100 shadow-sm p-4 flex flex-col gap-3 transition-transform hover:-translate-y-0.5 min-w-[140px] flex-1">
-                                        <div className="flex justify-between items-center text-[10px] font-black text-[#0F1E2E] uppercase tracking-widest leading-none">
-                                            {field.label}
-                                            <span className="text-sm">{field.icon}</span>
-                                        </div>
-                                        
-                                        <div className="flex flex-col items-center justify-center pt-1 pb-2">
-                                            <input
-                                                type="text"
-                                                disabled={jurySubmitted}
-                                                value={juryScores[field.key]}
-                                                onChange={(e) => setJuryScores({ ...juryScores, [field.key]: e.target.value })}
-                                                className="w-12 text-center text-3xl font-black text-[#0F1E2E] bg-transparent focus:outline-none mb-1 disabled:opacity-50"
-                                                placeholder=""
-                                            />
-                                            <div className="w-10 h-px bg-slate-200 mb-1"></div>
-                                            <span className="text-[10px] font-bold text-slate-400">/ 10</span>
-                                        </div>
-
-                                        <div className="border-t border-dashed border-slate-200 pt-2.5 flex items-center justify-between">
-                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">AI Score</span>
-                                            <span className="text-xs font-black text-[#0F1E2E]">{jurySubmitted && field.aiKey && aiEval?.[field.aiKey as string] ? aiEval[field.aiKey as string] : "—"}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="flex flex-wrap items-center gap-3 px-1 mt-2">
-                                {!jurySubmitted ? (
-                                    <button
-                                        onClick={handleJurySubmit}
-                                        disabled={submittingJury}
-                                        className="w-full py-3 rounded-xl bg-brand-accent text-white font-black text-[11px] uppercase tracking-widest shadow-lg hover:bg-brand-blue transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
-                                    >
-                                        {submittingJury ? "Submitting..." : "Submit verification"}
-                                    </button>
-                                ) : (
-                                    <div className="px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 w-fit">
-                                        <CheckCircle2 size={14} /> Verdict registered
-                                    </div>
-                                )}
-
-                                {jurySubmitted && aiAvg && (
-                                    <div className="bg-brand-accent/5 rounded-xl px-4 py-2 flex items-center gap-4 border border-brand-accent/10 w-fit">
-                                        <div className="flex flex-row items-center gap-2">
-                                            <span className="text-[9px] font-black tracking-widest text-[#0F1E2E] uppercase">Ai avg</span>
-                                            <span className="text-sm font-black text-[#0F1E2E] leading-none">{aiAvg}</span>
-                                        </div>
-                                        <div className="w-px h-4 bg-brand-accent/20"></div>
-                                        <div className="flex flex-row items-center gap-2">
-                                            <span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">Variance</span>
-                                            <span className="text-sm font-black text-slate-900 leading-none">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            </details>
                         </div>
 
+                        {/* RIGHT: JURY SCORE BOARD (Dynamic Vertical Stack) */}
+                        <div className="lg:col-span-5 flex flex-col gap-8 lg:sticky lg:top-8">
+                            <div className="flex flex-col gap-6">
+                                <h2 className="text-2xl font-black italic tracking-tight text-[#0F1E2E]">Jury Scoring Board</h2>
+                                
+                                <div className="flex flex-col gap-4">
+                                    {[
+                                        { label: "DESIRABILITY", key: "d" as const, aiKey: "desirability_score", icon: "🖤" },
+                                        { label: "FEASIBILITY", key: "f" as const, aiKey: "feasibility_score", icon: "🛠️" },
+                                        { label: "VIABILITY", key: "v" as const, aiKey: "viability_score", icon: "💰" },
+                                    ].map((field) => (
+                                        <div key={field.key} className="bg-white rounded-[20px] border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] p-5 flex flex-row items-center justify-between gap-6 transition-transform hover:scale-[1.01] overflow-hidden group">
+                                            <div className="flex flex-col gap-1 min-w-[120px]">
+                                                <div className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                                                    <span className="text-lg opacity-80 group-hover:opacity-100 transition-opacity">{field.icon}</span>
+                                                    {field.label}
+                                                </div>
+                                                {jurySubmitted && field.aiKey && aiEval?.[field.aiKey] && (
+                                                    <div className="mt-2 flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold text-brand-accent/60 uppercase tracking-tighter">AI Score</span>
+                                                        <span className="text-xs font-black text-brand-accent">{aiEval[field.aiKey]}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            <div className="flex flex-row items-center gap-4 bg-slate-50/50 rounded-xl px-6 py-2 border border-slate-100">
+                                                <input
+                                                    type="text"
+                                                    disabled={jurySubmitted}
+                                                    value={juryScores[field.key]}
+                                                    onChange={(e) => setJuryScores({ ...juryScores, [field.key]: e.target.value })}
+                                                    className="w-10 text-center text-3xl font-black text-[#0F1E2E] bg-transparent focus:outline-none disabled:opacity-50"
+                                                    placeholder="-"
+                                                />
+                                                <div className="flex flex-col items-center opacity-30 select-none">
+                                                    <div className="w-px h-6 bg-slate-400"></div>
+                                                    <span className="text-[10px] font-black italic leading-none mt-1">10</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex flex-col gap-4 mt-2">
+                                    {!jurySubmitted && (
+                                        <button
+                                            onClick={handleJurySubmit}
+                                            disabled={submittingJury}
+                                            className="w-full py-4 rounded-xl bg-brand-accent text-white font-black text-[13px] uppercase tracking-[0.2em] shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.15)] hover:bg-brand-blue transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+                                        >
+                                            {submittingJury ? "Submitting Analysis..." : "Submit Verification"}
+                                        </button>
+                                    )}
+
+                                    {jurySubmitted && (
+                                        <div className="flex flex-col gap-4">
+                                            <div className="w-full py-3.5 rounded-xl bg-emerald-500 text-white font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(16,185,129,0.2)]">
+                                                <CheckCircle2 size={16} /> Verdict Registered
+                                            </div>
+
+                                            {aiAvg && (
+                                                <div className="flex items-center gap-3 w-full">
+                                                    <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between overflow-hidden relative">
+                                                        <div className="absolute top-0 right-0 w-1 h-full bg-brand-accent/10"></div>
+                                                        <span className="text-[10px] font-black tracking-widest text-[#0F1E2E] uppercase">Ai avg</span>
+                                                        <span className="text-xl font-black text-brand-accent italic">{aiAvg}</span>
+                                                    </div>
+                                                    <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between">
+                                                        <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Variance</span>
+                                                        <span className="text-base font-black text-slate-900 border-b-2 border-slate-100">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
