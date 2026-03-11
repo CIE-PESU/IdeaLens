@@ -66,7 +66,7 @@ function TeamDetailsContent() {
     const [error, setError] = useState<string | null>(null);
 
     // Jury Form State
-    const [juryScores, setJuryScores] = useState<any>({ d: "", f: "", v: "", p: "" });
+    const [juryScores, setJuryScores] = useState<any>({ d: "", f: "", v: "" });
     const [juryFeedback, setJuryFeedback] = useState("");
     const [submittingJury, setSubmittingJury] = useState(false);
     const [jurySubmitted, setJurySubmitted] = useState(false);
@@ -145,7 +145,6 @@ function TeamDetailsContent() {
                     desirability_score: juryScores.d ? Math.round(Number(juryScores.d)) : null,
                     feasibility_score: juryScores.f ? Math.round(Number(juryScores.f)) : null,
                     viability_score: juryScores.v ? Math.round(Number(juryScores.v)) : null,
-                    // Note: presentation_score is omitted from insert if the DB doesn't have it, but it's tracked in state.
                     overall_comments: juryFeedback,
                     evaluated_at: new Date().toISOString()
                 });
@@ -176,7 +175,7 @@ function TeamDetailsContent() {
     };
 
     const juryAvg = useMemo(() => {
-        const scores = [Number(juryScores.d), Number(juryScores.f), Number(juryScores.v), Number(juryScores.p)].filter(v => !isNaN(v) && v > 0);
+        const scores = [Number(juryScores.d), Number(juryScores.f), Number(juryScores.v)].filter(v => !isNaN(v) && v > 0);
         if (scores.length === 0) return "0.00";
         return (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
     }, [juryScores]);
@@ -363,42 +362,35 @@ function TeamDetailsContent() {
                         <div className="bg-white/85 backdrop-blur-[12px] rounded-[20px] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.08)] text-slate-900" style={{ border: '1px solid rgba(0,0,0,0.05)' }}>
                             <h2 className="text-[#0F1E2E] text-2xl font-bold mb-6">Jury Scoring Board</h2>
                             
-                            {/* 4-CARD GRID */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4">
+                            {/* DYNAMIC DFV GRID */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-3 min-[1800px]:grid-cols-3">
                                 {[
                                     { label: "DESIRABILITY", key: "d" as const, aiKey: "desirability_score", icon: "🖤", isManual: false },
                                     { label: "FEASIBILITY", key: "f" as const, aiKey: "feasibility_score", icon: "🛠️", isManual: false },
                                     { label: "VIABILITY", key: "v" as const, aiKey: "viability_score", icon: "💰", isManual: false },
-                                    { label: "PRESENTATION", key: "p" as const, aiKey: null, icon: "🎤", isManual: true },
                                 ].map((field) => (
-                                    <div key={field.key} className="bg-white rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 flex flex-col gap-4">
-                                        <div className="flex justify-between items-center text-sm font-black text-[#0F1E2E] uppercase tracking-widest">
+                                    <div key={field.key} className="bg-white rounded-[16px] border border-slate-100 shadow-sm p-4 flex flex-col gap-3 transition-transform hover:-translate-y-0.5">
+                                        <div className="flex justify-between items-center text-[11px] font-black text-[#0F1E2E] uppercase tracking-widest leading-none">
                                             {field.label}
-                                            <span className="text-xl">{field.icon}</span>
+                                            <span className="text-base">{field.icon}</span>
                                         </div>
                                         
-                                        <div className="flex flex-col items-center justify-center pt-2 pb-4">
+                                        <div className="flex flex-col items-center justify-center pt-1 pb-2">
                                             <input
                                                 type="text"
                                                 disabled={jurySubmitted}
                                                 value={juryScores[field.key]}
                                                 onChange={(e) => setJuryScores({ ...juryScores, [field.key]: e.target.value })}
-                                                className="w-16 text-center text-3xl font-black text-[#0F1E2E] bg-transparent focus:outline-none mb-1 disabled:opacity-50"
+                                                className="w-12 text-center text-3xl font-black text-[#0F1E2E] bg-transparent focus:outline-none mb-1 disabled:opacity-50"
                                                 placeholder=""
                                             />
-                                            <div className="w-16 h-px bg-slate-200 mb-2"></div>
-                                            <span className="text-xs font-medium text-slate-400">/ 10</span>
+                                            <div className="w-10 h-px bg-slate-200 mb-1"></div>
+                                            <span className="text-[10px] font-bold text-slate-400">/ 10</span>
                                         </div>
 
-                                        <div className="border-t border-dashed border-slate-200 pt-3 flex items-center justify-between">
-                                            {!field.isManual ? (
-                                                <>
-                                                    <span className="text-xs font-medium text-slate-400">AI Score</span>
-                                                    <span className="text-sm font-black text-[#0F1E2E]">{jurySubmitted && field.aiKey && aiEval?.[field.aiKey as string] ? aiEval[field.aiKey as string] : "—"}</span>
-                                                </>
-                                            ) : (
-                                                <span className="text-xs font-medium italic text-slate-400 w-full text-center tracking-wide">Manual entry only</span>
-                                            )}
+                                        <div className="border-t border-dashed border-slate-200 pt-2.5 flex items-center justify-between">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">AI Score</span>
+                                            <span className="text-sm font-black text-[#0F1E2E]">{jurySubmitted && field.aiKey && aiEval?.[field.aiKey as string] ? aiEval[field.aiKey as string] : "—"}</span>
                                         </div>
                                     </div>
                                 ))}
