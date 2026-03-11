@@ -108,21 +108,6 @@ export default function Home() {
         </div>
 
         {/* PROGRESS & VIEW CONTROLS */}
-        <section className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-slate-100 pb-8">
-          <div className="flex-1 space-y-4 max-w-lg">
-            <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.2em]">
-              <span className="text-slate-400">Global Evaluation Progress</span>
-              <span className="text-brand-accent">{stats.evaluated} / {stats.total} TEAMS</span>
-            </div>
-            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-brand-accent transition-all duration-1000 ease-out"
-                style={{ width: `${stats.progress}%` }}
-              ></div>
-            </div>
-          </div>
-
-        </section>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

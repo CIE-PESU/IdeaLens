@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export default function LogosHeader() {
     return (
-        <div className="w-full px-4 pt-0 pb-2 -mt-10">
+        <div className="w-full px-6 pt-4 pb-4">
             <div className="grid grid-cols-3 items-center w-full">
 
                 {/* PES - Left */}
@@ -14,7 +14,7 @@ export default function LogosHeader() {
                         alt="PES"
                         width={800}
                         height={900}
-                        className="h-36 md:h-44 lg:h-52 w-auto object-contain"
+                        className="h-24 md:h-32 lg:h-40 w-auto object-contain"
                         priority
                     />
                 </div>
@@ -26,7 +26,7 @@ export default function LogosHeader() {
                         alt="IdeaLens"
                         width={700}
                         height={260}
-                        className="h-32 md:h-40 lg:h-48 w-auto object-contain"
+                        className="h-28 md:h-36 lg:h-44 w-auto object-contain drop-shadow-md"
                         priority
                     />
                 </div>
@@ -38,7 +38,7 @@ export default function LogosHeader() {
                         alt="CIE"
                         width={800}
                         height={300}
-                        className="h-36 md:h-44 lg:h-52 w-auto object-contain"
+                        className="h-24 md:h-32 lg:h-40 w-auto object-contain"
                         priority
                     />
                 </div>
