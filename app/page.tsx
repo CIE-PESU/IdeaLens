@@ -16,7 +16,9 @@ type TeamPreview = {
 
 export default function Home() {
   const [query, setQuery] = useState("");
-  const [teams, setTeams] = useState<TeamPreview[]>([]);
+  const [allFetchedTeams, setAllFetchedTeams] = useState<TeamPreview[]>([]);
+  const [intersectNames, setIntersectNames] = useState<string[]>([]);
+  const [phaseMode, setPhaseMode] = useState<'phase2' | 'phase3'>('phase3');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'detailed' | 'compact' | 'comparative'>('compact');
@@ -28,8 +30,41 @@ export default function Home() {
       setLoading(true);
       setError(null);
       try {
-        // Fetch teams from idealens_submissions2
-        const { data, error: subError } = await supabase
+        // 1. Fetch AI shortlisted team names (ai_evaluations2)
+        const { data: aiData, error: aiError } = await supabase
+          .from("ai_evaluations2")
+          .select("team_name");
+
+        if (aiError) {
+          console.error("Error fetching AI shortlist:", aiError.message);
+          throw aiError;
+        }
+
+        // 2. Fetch Human shortlisted team names (human_evaluations2)
+        const { data: humanData, error: humanError } = await supabase
+          .from("human_evaluations2")
+          .select("team_name");
+
+        if (humanError) {
+          console.error("Error fetching human shortlist:", humanError.message);
+          throw humanError;
+        }
+
+        // 3. Find intersection by team_name (Teams present in BOTH)
+        // We use trimmed lowercase for the intersection logic
+        const aiNames = (aiData || []).map(s => (s.team_name || "").trim()).filter(Boolean);
+        const humanNames = (humanData || []).map(s => (s.team_name || "").trim().toLowerCase()).filter(Boolean);
+        const intersectLower = aiNames.filter(n => humanNames.includes(n.toLowerCase())).map(n => n.toLowerCase());
+
+        console.log("DEBUG LOGS:");
+        console.log(" - ai_evaluations2 count:", aiData?.length || 0);
+        console.log(" - human_evaluations2 count:", humanData?.length || 0);
+        console.log(" - intersection count:", intersectLower.length);
+
+        setIntersectNames(intersectLower);
+
+        // 4. Fetch all submissions and filter in-memory to handle whitespace inconsistencies robustly
+        const { data: allSubmissions, error: subError } = await supabase
           .from("idealens_submissions2")
           .select("id, submitted_at, email, team_name")
           .order("submitted_at", { ascending: false });
@@ -39,40 +74,47 @@ export default function Home() {
           throw subError;
         }
 
-        setTeams(data as TeamPreview[]);
+        setAllFetchedTeams(allSubmissions as TeamPreview[]);
       } catch (err: any) {
         console.error("Dashboard Intelligence Error:", err);
-        setError(`Failed to load intelligence: ${err.message || String(err)}`);
+        setError(`Failed to load intelligence: ${err.message || String(err)}. Check if your Supabase project is active and reachable.`);
       } finally {
         setLoading(false);
       }
     };
 
-    // Load viewMode from localStorage
+    // Load viewMode and phaseMode from localStorage
     if (typeof window !== 'undefined') {
       const savedViewMode = localStorage.getItem('ideaLensViewMode') as 'detailed' | 'compact';
       if (savedViewMode) setViewMode(savedViewMode);
+      
+      const savedPhaseMode = localStorage.getItem('ideaLensPhaseMode') as 'phase2' | 'phase3';
+      if (savedPhaseMode) setPhaseMode(savedPhaseMode);
     }
 
     fetchData();
   }, []);
 
-  // Persist viewMode to localStorage
+  // Persist settings to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('ideaLensViewMode', viewMode);
+      localStorage.setItem('ideaLensPhaseMode', phaseMode);
     }
-  }, [viewMode]);
+  }, [viewMode, phaseMode]);
 
-  const stats = useMemo(() => {
-    const total = teams.length;
-    const evaluated = 0; // Simplified
-    const progress = 0;
-    return { total, evaluated, progress };
-  }, [teams]);
+
 
   const processedTeams = useMemo(() => {
-    let result = teams.filter((team) =>
+    let baseTeams = allFetchedTeams;
+    if (phaseMode === 'phase3') {
+      baseTeams = allFetchedTeams.filter(sub => {
+        const name = (sub.team_name || "").trim().toLowerCase();
+        return intersectNames.includes(name);
+      });
+    }
+
+    let result = baseTeams.filter((team) =>
       (team.team_name || "").toLowerCase().includes(query.toLowerCase())
     );
 
@@ -83,7 +125,14 @@ export default function Home() {
     }
 
     return result;
-  }, [teams, query, sortBy]);
+  }, [allFetchedTeams, intersectNames, phaseMode, query, sortBy]);
+
+  const stats = useMemo(() => {
+    const total = processedTeams?.length || 0;
+    const evaluated = 0; // Simplified
+    const progress = 0;
+    return { total, evaluated, progress };
+  }, [processedTeams]);
 
   return (
     <div className="relative min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-brand-accent/30">
@@ -93,8 +142,8 @@ export default function Home() {
 
       <main className="w-full px-12 mt-0 pb-10">
 
-        {/* SEARCH BAR (OUTSIDE HEADER) */}
-        <div className="flex justify-center mb-6 -mt-8">
+        {/* SEARCH BAR & PHASE TOGGLE */}
+        <div className="flex flex-col items-center mb-10 -mt-8 gap-6">
           <div className="relative w-full max-w-md group">
             <input
               type="text"
@@ -104,6 +153,22 @@ export default function Home() {
               className="w-full bg-white rounded-2xl border border-slate-200 px-5 py-3 text-sm shadow-sm group-hover:shadow-md focus:ring-4 focus:ring-brand-accent/10 focus:border-brand-accent/30 outline-none transition-all placeholder:text-slate-300 font-medium italic"
             />
             <Search className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-hover:text-brand-accent transition-colors" />
+          </div>
+          
+          {/* Toggle Control */}
+          <div className="flex bg-slate-200/50 p-1 rounded-xl w-72 shadow-inner">
+             <button 
+               onClick={() => setPhaseMode('phase2')}
+               className={`flex-1 py-2 text-[10px] font-black uppercase tracking-[0.2em] italic rounded-lg transition-all ${phaseMode === 'phase2' ? 'bg-white shadow pointer-events-none text-brand-accent' : 'text-slate-500 hover:text-slate-900'}`}
+             >
+               Phase 2 (All Teams)
+             </button>
+             <button 
+               onClick={() => setPhaseMode('phase3')}
+               className={`flex-1 py-2 text-[10px] font-black uppercase tracking-[0.2em] italic rounded-lg transition-all ${phaseMode === 'phase3' ? 'bg-white shadow pointer-events-none text-brand-accent' : 'text-slate-500 hover:text-slate-900'}`}
+             >
+               Phase 3 (Top 21)
+             </button>
           </div>
         </div>
 

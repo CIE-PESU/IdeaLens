@@ -1,51 +1,42 @@
-
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
+// No node-fetch needed if using a version that has it OR if we use a different approach.
+// But wait, I'll use a dynamic import for node-fetch if available or just try with what's there.
 
 const envPath = path.resolve(process.cwd(), '.env.local');
 const envContent = fs.readFileSync(envPath, 'utf8');
 const envVars = {};
-envContent.split('\n').forEach(line => {
-    const [key, value] = line.split('=');
-    if (key && value) {
-        envVars[key.trim()] = value.trim();
+envContent.split(/\r?\n/).forEach(line => {
+    const parts = line.split('=');
+    if (parts.length >= 2) {
+        const key = parts[0].trim();
+        const value = parts.slice(1).join('=').trim();
+        envVars[key] = value;
     }
 });
 
-const supabase = createClient(envVars.NEXT_PUBLIC_SUPABASE_URL, envVars.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
-async function inspect() {
-    let output = "";
-    
-    const tables = ['ai_evaluations', 'human_evaluations', 'idealens_submissions2', 'idea_submissions', 'teams'];
-    
-    for (const table of tables) {
-        output += `--- Table: ${table} ---\n`;
+async function run() {
+    console.log('Using URL:', envVars.NEXT_PUBLIC_SUPABASE_URL);
+    // Try to use global fetch if exists
+    if (typeof fetch === 'undefined') {
+        console.log('Global fetch is UNDEFINED. Attempting to use node-fetch...');
         try {
-            const { data, error } = await supabase.from(table).select('*').limit(1);
-            if (error) {
-                output += `Error: ${error.message}\n`;
-                if (error.details) output += `Details: ${error.details}\n`;
-                if (error.hint) output += `Hint: ${error.hint}\n`;
-            } else if (data && data.length > 0) {
-                output += `Status: FOUND DATA\n`;
-                output += `Columns: ${Object.keys(data[0]).join(', ')}\n`;
-                output += `Sample: ${JSON.stringify(data[0])}\n`;
-            } else {
-                output += `Status: EMPTY\n`;
-            }
+            global.fetch = require('node-fetch');
         } catch (e) {
-            output += `Exception: ${e.message}\n`;
+            console.log('node-fetch not installed. Fetch will fail.');
         }
-        output += "\n";
     }
-    
-    fs.writeFileSync('inspection_output.txt', output);
-    console.log("Inspection complete. Results in inspection_output.txt");
+
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(envVars.NEXT_PUBLIC_SUPABASE_URL, envVars.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+    const { data, error } = await supabase.from('ai_evaluations').select('*').limit(1);
+    if (error) {
+        console.error('FETCH ERROR:', error.message);
+    } else {
+        console.log('FETCH SUCCESS:', data);
+    }
 }
 
-inspect().catch(e => {
-    fs.writeFileSync('inspection_output.txt', "FATAL ERROR: " + e.message);
-    console.log("CATCH:", e.message);
-});
+run();

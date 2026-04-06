@@ -82,7 +82,7 @@ function TeamDetailsContent() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // 1. Fetch main submission
+                // 1. Fetch main submission first to get the team name
                 const { data: subData, error: subError } = await supabase
                     .from("idealens_submissions2")
                     .select("*")
@@ -91,35 +91,51 @@ function TeamDetailsContent() {
 
                 if (subError) throw subError;
                 setSubmission(subData);
+                const teamName = subData.team_name;
 
-                // 2. Fetch human eval if exists
-                const { data: hData } = await supabase
-                    .from("human_evaluations")
-                    .select("*")
-                    .eq("idea_id", id)
-                    .order('evaluated_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
+                // 2. Fetch all Phase 1 AI Evaluations for in-memory robust matching
+                const { data: allAiData } = await supabase
+                    .from("ai_evaluations2")
+                    .select("*");
 
-                if (hData) {
-                    setHumanEval(hData);
-                    setJurySubmitted(true);
-                    setJuryScores({
-                        d: hData.desirability_score || 5,
-                        f: hData.feasibility_score || 5,
-                        v: hData.viability_score || 5
-                    });
-                    setJuryFeedback(hData.overall_comments || "");
+                // Case-insensitive trimmed match
+                const teamNameLower = teamName.trim().toLowerCase();
+                const a1Data = (allAiData || []).find(d => (d.team_name || "").trim().toLowerCase() === teamNameLower);
+                if (a1Data) setAiEval(a1Data);
+
+                // 3. Fetch all Phase 1 Human Evaluations for in-memory robust matching
+                const { data: allHumanData } = await supabase
+                    .from("human_evaluations2")
+                    .select("*");
+                
+                const h1Data = (allHumanData || []).find(d => (d.team_name || "").trim().toLowerCase() === teamNameLower);
+                if (h1Data) setHumanEval(h1Data);
+
+                // 4. Note if team is shortlisted (exists in BOTH reference tables)
+                if (!a1Data || !h1Data) {
+                    console.log(`Shortlist check failed for ${teamName}: AI:${!!a1Data}, Human:${!!h1Data}`);
                 }
 
-                // 3. Fetch AI eval if exists
-                const { data: aData } = await supabase
-                    .from("ai_evaluations")
+                // 5. Fetch Ignite Phase 2 Score from human_evaluations_phase2 using submission id (as idea_id)
+                const { data: phase2Data } = await supabase
+                    .from("human_evaluations_phase2")
                     .select("*")
-                    .eq("team_id", id) // Based on DB inspection showing team_id as FK
+                    .eq("idea_id", id)
                     .maybeSingle();
 
-                if (aData) setAiEval(aData);
+                if (phase2Data) {
+                    setJurySubmitted(true);
+                    setJuryScores({
+                        d: phase2Data.desirability_score || "",
+                        f: phase2Data.feasibility_score || "",
+                        v: phase2Data.viability_score || ""
+                    });
+                    setJuryFeedback(phase2Data.overall_comments || "");
+                } else {
+                    setJurySubmitted(false);
+                    setJuryScores({ d: "", f: "", v: "" });
+                    setJuryFeedback("");
+                }
 
             } catch (err: any) {
                 console.error("Fetch error:", err);
@@ -136,10 +152,10 @@ function TeamDetailsContent() {
         if (!id || !submission) return;
         setSubmittingJury(true);
         try {
-            // Use insert since there's no unique constraint on idea_id
+            // New scores for Ignite Phase 2 go to human_evaluations_phase2
             const { error: insertError } = await supabase
-                .from("human_evaluations")
-                .insert({
+                .from("human_evaluations_phase2")
+                .upsert({
                     idea_id: id,
                     team_name: submission.team_name,
                     desirability_score: juryScores.d ? Math.round(Number(juryScores.d)) : null,
@@ -147,27 +163,18 @@ function TeamDetailsContent() {
                     viability_score: juryScores.v ? Math.round(Number(juryScores.v)) : null,
                     overall_comments: juryFeedback,
                     evaluated_at: new Date().toISOString()
-                });
+                }, { onConflict: 'idea_id' });
 
             if (insertError) {
                 console.error("Raw Insert Error:", JSON.stringify(insertError));
                 throw insertError;
             }
 
-            // Update local state to show "Submitted" and fetch the created record
-            const { data: updatedHData } = await supabase
-                .from("human_evaluations")
-                .select("*")
-                .eq("idea_id", id)
-                .order('evaluated_at', { ascending: false })
-                .limit(1)
-                .single();
-
-            setHumanEval(updatedHData);
             setJurySubmitted(true);
+            alert("Ignite Phase 2 Analysis Registered.");
         } catch (err: any) {
             const errMsg = err?.message || err?.details || JSON.stringify(err);
-            console.error("Submission failed exact:", err, " stringified:", errMsg);
+            console.error("Submission failed:", err);
             alert(`Submission failed: ${errMsg}`);
         } finally {
             setSubmittingJury(false);
@@ -347,35 +354,55 @@ function TeamDetailsContent() {
                         {/* RIGHT: JURY SCORE BOARD (Dynamic Vertical Stack) */}
                         <div className="lg:col-span-5 flex flex-col gap-8 lg:sticky lg:top-8">
                             <div className="flex flex-col gap-6">
-                                <h2 className="text-2xl font-black italic tracking-tight text-[#0F1E2E]">Jury Scoring Board</h2>
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-2xl font-black italic tracking-tight text-[#0F1E2E]">Ignite Phase 2 Score</h2>
+                                    <div className="text-[10px] font-black px-2 py-1 bg-brand-accent/10 text-brand-accent rounded text-xs uppercase tracking-widest italic">Live Session</div>
+                                </div>
                                 
                                 <div className="flex flex-col gap-4">
                                     {[
-                                        { label: "DESIRABILITY", key: "d" as const, aiKey: "desirability_score", icon: "🖤" },
-                                        { label: "FEASIBILITY", key: "f" as const, aiKey: "feasibility_score", icon: "🛠️" },
-                                        { label: "VIABILITY", key: "v" as const, aiKey: "viability_score", icon: "💰" },
+                                        { label: "DESIRABILITY", key: "d" as const, aiKey: "desirability_score", humanKey: "desirability_score", icon: "🖤" },
+                                        { label: "FEASIBILITY", key: "f" as const, aiKey: "feasibility_score", humanKey: "feasibility_score", icon: "🛠️" },
+                                        { label: "VIABILITY", key: "v" as const, aiKey: "viability_score", humanKey: "viability_score", icon: "💰" },
                                     ].map((field) => (
                                         <div key={field.key} className="bg-white rounded-[20px] border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] p-5 flex flex-row items-center justify-between gap-6 transition-transform hover:scale-[1.01] overflow-hidden group">
-                                            <div className="flex flex-col gap-1 min-w-[120px]">
+                                            <div className="flex flex-col gap-1 min-w-[140px]">
                                                 <div className="flex items-center gap-2 text-[12px] font-black text-slate-900 uppercase tracking-widest leading-none">
                                                     <span className="text-lg opacity-80 group-hover:opacity-100 transition-opacity">{field.icon}</span>
                                                     {field.label}
                                                 </div>
-                                                {jurySubmitted && field.aiKey && aiEval?.[field.aiKey] && (
-                                                    <div className="mt-2 flex items-center gap-2">
-                                                        <span className="text-[10px] font-bold text-brand-accent/60 uppercase tracking-tighter">AI Score</span>
-                                                        <span className="text-xs font-black text-brand-accent">{aiEval[field.aiKey]}</span>
+                                                
+                                                {/* Phase 1 Reference Data */}
+                                                {(aiEval?.[field.aiKey] !== undefined || humanEval?.[field.humanKey] !== undefined) && (
+                                                <div className="mt-3 flex flex-col gap-1.5">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic opacity-60">Phase 2 Ref</span>
+                                                        <div className="h-px flex-1 bg-slate-50"></div>
                                                     </div>
+                                                    <div className="flex items-center gap-4">
+                                                        {aiEval?.[field.aiKey] !== undefined && (
+                                                            <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-0.5 rounded border border-slate-100" title="Previous AI Score">
+                                                                <span className="text-[8px] font-black text-brand-accent/70 uppercase tracking-tighter">AI</span>
+                                                                <span className="text-[11px] font-black text-brand-accent">{aiEval[field.aiKey]}</span>
+                                                            </div>
+                                                        )}
+                                                        {humanEval?.[field.humanKey] !== undefined && (
+                                                            <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-0.5 rounded border border-slate-100" title="Previous Human Score">
+                                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">JURY</span>
+                                                                <span className="text-[11px] font-black text-slate-600">{humanEval[field.humanKey]}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                                 )}
                                             </div>
                                             
-                                            <div className="flex flex-row items-center gap-4 bg-slate-50/50 rounded-xl px-6 py-2 border border-slate-100">
+                                            <div className="flex flex-row items-center gap-4 bg-slate-50/50 rounded-xl px-6 py-2 border border-slate-100 ring-1 ring-transparent focus-within:ring-brand-accent/20 transition-all">
                                                 <input
                                                     type="text"
-                                                    disabled={jurySubmitted}
                                                     value={juryScores[field.key]}
                                                     onChange={(e) => setJuryScores({ ...juryScores, [field.key]: e.target.value })}
-                                                    className="w-10 text-center text-3xl font-black text-[#0F1E2E] bg-transparent focus:outline-none disabled:opacity-50"
+                                                    className="w-10 text-center text-3xl font-black text-[#0F1E2E] bg-transparent focus:outline-none"
                                                     placeholder="-"
                                                 />
                                                 <div className="flex flex-col items-center opacity-30 select-none">
@@ -386,40 +413,36 @@ function TeamDetailsContent() {
                                         </div>
                                     ))}
                                 </div>
-
+                                
                                 <div className="flex flex-col gap-4 mt-2">
-                                    {!jurySubmitted && (
-                                        <button
-                                            onClick={handleJurySubmit}
-                                            disabled={submittingJury}
-                                            className="w-full py-4 rounded-xl bg-brand-accent text-white font-black text-[13px] uppercase tracking-[0.2em] shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.15)] hover:bg-brand-blue transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
-                                        >
-                                            {submittingJury ? "Submitting Analysis..." : "Submit Verification"}
-                                        </button>
-                                    )}
+                                    <button
+                                        onClick={handleJurySubmit}
+                                        disabled={submittingJury}
+                                        className="w-full py-4 rounded-xl bg-brand-accent text-white font-black text-[13px] uppercase tracking-[0.2em] shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.15)] hover:bg-brand-blue transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+                                    >
+                                        {submittingJury ? "Submitting Analysis..." : jurySubmitted ? "Update Analysis" : "Submit Phase 2 Score"}
+                                    </button>
 
                                     {jurySubmitted && (
-                                        <div className="flex flex-col gap-4">
-                                            <div className="w-full py-3.5 rounded-xl bg-emerald-500 text-white font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(16,185,129,0.2)]">
-                                                <CheckCircle2 size={16} /> Verdict Registered
-                                            </div>
-
-                                            {aiAvg && (
-                                                <div className="flex items-center gap-3 w-full">
-                                                    <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between overflow-hidden relative">
-                                                        <div className="absolute top-0 right-0 w-1 h-full bg-brand-accent/10"></div>
-                                                        <span className="text-[10px] font-black tracking-widest text-[#0F1E2E] uppercase">Ai avg</span>
-                                                        <span className="text-xl font-black text-brand-accent italic">{aiAvg}</span>
-                                                    </div>
-                                                    <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between">
-                                                        <span className="text-[11px] font-bold tracking-widest text-slate-900 uppercase">Variance</span>
-                                                        <span className="text-base font-black text-slate-900 border-b-2 border-slate-100">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
-                                                    </div>
-                                                </div>
-                                            )}
+                                        <div className="w-full py-3.5 rounded-xl bg-emerald-50 text-emerald-600 font-bold text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 border border-emerald-100 italic transition-all">
+                                            <CheckCircle2 size={16} /> Ignite Verdict Registered
                                         </div>
                                     )}
                                 </div>
+
+                                {jurySubmitted && aiAvg && (
+                                    <div className="flex items-center gap-3 w-full mt-4">
+                                        <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between overflow-hidden relative">
+                                            <div className="absolute top-0 right-0 w-1 h-full bg-brand-accent/10"></div>
+                                            <span className="text-[10px] font-black tracking-widest text-[#0F1E2E] uppercase">Ai avg</span>
+                                            <span className="text-xl font-black text-brand-accent italic">{aiAvg}</span>
+                                        </div>
+                                        <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between">
+                                            <span className="text-[11px] font-bold tracking-widest text-slate-900 uppercase">Variance</span>
+                                            <span className="text-base font-black text-slate-900 border-b-2 border-slate-100">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -443,7 +466,7 @@ function TeamDetailsContent() {
                     animation: premium-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 }
             `}</style>
-        </div >
+        </div>
     );
 }
 
