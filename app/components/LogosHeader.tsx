@@ -4,41 +4,41 @@ import Image from "next/image";
 
 export default function LogosHeader() {
     return (
-        <div className="w-full px-6 pt-0 pb-1 -mt-6 md:-mt-10 lg:-mt-12">
-            <div className="grid grid-cols-3 items-center w-full">
+        <div className="w-full px-6 -mt-8 pb-2 bg-slate-50">
+            <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
 
                 {/* PES - Left */}
-                <div className="flex justify-start">
+                <div className="flex items-center justify-start flex-shrink-0">
                     <Image
                         src="/pes_v2.png"
                         alt="PES"
-                        width={800}
-                        height={900}
-                        className="h-28 md:h-36 lg:h-48 w-auto object-contain"
+                        width={300}
+                        height={300}
+                        className="h-12 w-auto object-contain"
                         priority
                     />
                 </div>
 
                 {/* IdeaLens - Center */}
-                <div className="flex justify-center">
+                <div className="flex items-center justify-center flex-1">
                     <Image
                         src="/idealens.png"
                         alt="IdeaLens"
-                        width={700}
-                        height={260}
-                        className="h-36 md:h-48 lg:h-64 w-auto object-contain drop-shadow-md"
+                        width={250}
+                        height={100}
+                        className="h-43 w-auto object-contain drop-shadow-md"
                         priority
                     />
                 </div>
 
                 {/* CIE - Right */}
-                <div className="flex justify-end">
+                <div className="flex items-center justify-end flex-shrink-0">
                     <Image
                         src="/cie.png"
                         alt="CIE"
-                        width={800}
-                        height={300}
-                        className="h-28 md:h-36 lg:h-48 w-auto object-contain"
+                        width={300}
+                        height={120}
+                        className="h-12 w-auto object-contain"
                         priority
                     />
                 </div>

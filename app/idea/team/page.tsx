@@ -3,7 +3,9 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense, useMemo } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { ArrowLeft, Target, Zap, TrendingUp, Sparkles, AlertTriangle, Users, Heart, Hammer, MessageSquare, Send, CheckCircle2, ChevronDown } from "lucide-react";
+import { ArrowLeft, Target, Zap, TrendingUp, Sparkles, AlertTriangle, Users, Heart, Hammer, MessageSquare, Send, CheckCircle2, ChevronDown, Rocket, PieChart, Microscope, Swords, Briefcase, Gem, PlusCircle, Search, Home } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 // --- Helpers ---
 
@@ -54,10 +56,82 @@ const renderValue = (val: any) => {
 
 // --- Components ---
 
+function TeamSearchDropdown() {
+    const router = useRouter();
+    const [query, setQuery] = useState("");
+    const [teams, setTeams] = useState<any[]>([]);
+    const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        const fetchTeams = async () => {
+            const { data } = await supabase
+                .from("idealens_submissions2")
+                .select("id, team_name, team_members")
+                .order("submitted_at", { ascending: false });
+            if (data) setTeams(data);
+        };
+        fetchTeams();
+    }, []);
+
+    const filtered = useMemo(() => {
+        if (!query.trim()) return [];
+        const q = query.toLowerCase();
+        return teams.filter(t => 
+            (t.team_name || "").toLowerCase().includes(q) ||
+            (t.team_members || "").toLowerCase().includes(q)
+        ).slice(0, 8);
+    }, [query, teams]);
+
+    return (
+        <div className="relative w-full max-w-md group z-50">
+            <input
+                type="text"
+                value={query}
+                onChange={(e) => {
+                    setQuery(e.target.value);
+                    setIsOpen(true);
+                }}
+                onFocus={() => setIsOpen(true)}
+                onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+                placeholder="Search team name or member"
+                className="w-full bg-white rounded-2xl border border-slate-200 px-5 py-3 text-sm shadow-sm group-hover:shadow-md focus:ring-4 focus:ring-brand-accent/10 focus:border-brand-accent/30 outline-none transition-all placeholder:text-slate-300 font-medium italic"
+            />
+            <Search className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-hover:text-brand-accent transition-colors pointer-events-none" />
+            
+            {isOpen && filtered.length > 0 && (
+                <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                    {filtered.map(t => (
+                        <Link 
+                            key={t.id}
+                            href={`/idea/team?id=${encodeURIComponent(t.id)}`}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                                setIsOpen(false);
+                                setQuery("");
+                            }}
+                            className="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 flex flex-col gap-0.5 block"
+                        >
+                            <div className="text-[13px] font-bold text-slate-900 leading-tight">
+                                {t.team_name || "Untitled"}
+                            </div>
+                            {t.team_members && (
+                                <div className="text-[11px] text-slate-500 truncate leading-tight">
+                                    {t.team_members}
+                                </div>
+                            )}
+                        </Link>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 function TeamDetailsContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const id = searchParams.get("id");
+    const phase = searchParams.get("phase");
 
     const [loading, setLoading] = useState(true);
     const [submission, setSubmission] = useState<any | null>(null);
@@ -82,7 +156,7 @@ function TeamDetailsContent() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // 1. Fetch main submission first to get the team name
+                // 1. Fetch main submission
                 const { data: subData, error: subError } = await supabase
                     .from("idealens_submissions2")
                     .select("*")
@@ -91,51 +165,42 @@ function TeamDetailsContent() {
 
                 if (subError) throw subError;
                 setSubmission(subData);
-                const teamName = subData.team_name;
 
-                // 2. Fetch all Phase 1 AI Evaluations for in-memory robust matching
-                const { data: allAiData } = await supabase
-                    .from("ai_evaluations2")
-                    .select("*");
-
-                // Case-insensitive trimmed match
-                const teamNameLower = teamName.trim().toLowerCase();
-                const a1Data = (allAiData || []).find(d => (d.team_name || "").trim().toLowerCase() === teamNameLower);
-                if (a1Data) setAiEval(a1Data);
-
-                // 3. Fetch all Phase 1 Human Evaluations for in-memory robust matching
-                const { data: allHumanData } = await supabase
-                    .from("human_evaluations2")
-                    .select("*");
-                
-                const h1Data = (allHumanData || []).find(d => (d.team_name || "").trim().toLowerCase() === teamNameLower);
-                if (h1Data) setHumanEval(h1Data);
-
-                // 4. Note if team is shortlisted (exists in BOTH reference tables)
-                if (!a1Data || !h1Data) {
-                    console.log(`Shortlist check failed for ${teamName}: AI:${!!a1Data}, Human:${!!h1Data}`);
-                }
-
-                // 5. Fetch Ignite Phase 2 Score from human_evaluations_phase2 using submission id (as idea_id)
-                const { data: phase2Data } = await supabase
-                    .from("human_evaluations_phase2")
+                // 2. Fetch human eval if exists
+                const humanEvalTable = phase === "phase3" ? "human_evaluations_phase3" : "human_evaluations";
+                const { data: hData } = await supabase
+                    .from(humanEvalTable)
                     .select("*")
                     .eq("idea_id", id)
+                    .order('evaluated_at', { ascending: false })
+                    .limit(1)
                     .maybeSingle();
 
-                if (phase2Data) {
-                    setJurySubmitted(true);
-                    setJuryScores({
-                        d: phase2Data.desirability_score || "",
-                        f: phase2Data.feasibility_score || "",
-                        v: phase2Data.viability_score || ""
-                    });
-                    setJuryFeedback(phase2Data.overall_comments || "");
-                } else {
-                    setJurySubmitted(false);
-                    setJuryScores({ d: "", f: "", v: "" });
-                    setJuryFeedback("");
+                if (hData) {
+                    setHumanEval(hData);
+                    
+                    // If in phase 3, we don't necessarily want to lock the jury from scoring Phase 3 if they need to,
+                    // but we will populate the phase 2 scores. Defaulting to standard view for now:
+                    if (phase !== "phase3") {
+                        setJurySubmitted(true);
+                        setJuryScores({
+                            d: hData.desirability_score || 5,
+                            f: hData.feasibility_score || 5,
+                            v: hData.viability_score || 5
+                        });
+                        setJuryFeedback(hData.overall_comments || "");
+                    }
                 }
+
+                // 3. Fetch AI eval if exists
+                const aiEvalTable = phase === "phase3" ? "ai_evaluations3" : "ai_evaluations";
+                const { data: aData } = await supabase
+                    .from(aiEvalTable)
+                    .select("*")
+                    .eq("team_id", id)
+                    .maybeSingle();
+
+                if (aData) setAiEval(aData);
 
             } catch (err: any) {
                 console.error("Fetch error:", err);
@@ -152,10 +217,10 @@ function TeamDetailsContent() {
         if (!id || !submission) return;
         setSubmittingJury(true);
         try {
-            // New scores for Ignite Phase 2 go to human_evaluations_phase2
+            const humanEvalTable = phase === "phase3" ? "human_evaluations_phase3" : "human_evaluations";
             const { error: insertError } = await supabase
-                .from("human_evaluations_phase2")
-                .upsert({
+                .from(humanEvalTable)
+                .insert({
                     idea_id: id,
                     team_name: submission.team_name,
                     desirability_score: juryScores.d ? Math.round(Number(juryScores.d)) : null,
@@ -163,18 +228,26 @@ function TeamDetailsContent() {
                     viability_score: juryScores.v ? Math.round(Number(juryScores.v)) : null,
                     overall_comments: juryFeedback,
                     evaluated_at: new Date().toISOString()
-                }, { onConflict: 'idea_id' });
+                });
 
             if (insertError) {
                 console.error("Raw Insert Error:", JSON.stringify(insertError));
                 throw insertError;
             }
 
+            const { data: updatedHData } = await supabase
+                .from(humanEvalTable)
+                .select("*")
+                .eq("idea_id", id)
+                .order('evaluated_at', { ascending: false })
+                .limit(1)
+                .single();
+
+            setHumanEval(updatedHData);
             setJurySubmitted(true);
-            alert("Ignite Phase 2 Analysis Registered.");
         } catch (err: any) {
             const errMsg = err?.message || err?.details || JSON.stringify(err);
-            console.error("Submission failed:", err);
+            console.error("Submission failed exact:", err, " stringified:", errMsg);
             alert(`Submission failed: ${errMsg}`);
         } finally {
             setSubmittingJury(false);
@@ -193,17 +266,20 @@ function TeamDetailsContent() {
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
-                <header className="w-full px-6 md:px-12 py-3 flex items-center justify-between" style={{ zoom: 0.9 }}>
-                    <div className="flex items-center gap-8 md:gap-12 w-1/3">
-                        <img src="/pes_v2.png" alt="PES" className="h-10 md:h-14 w-auto object-contain opacity-50 blur-sm" />
+                {/* Loading Header - Matching Homepage */}
+                <div className="w-full px-6 -mt-8 pb-2 bg-slate-50">
+                    <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
+                        <div className="flex items-center justify-start flex-shrink-0">
+                            <Image src="/pes_v2.png" alt="PES" width={300} height={300} className="h-12 w-auto object-contain opacity-50 blur-sm" priority />
+                        </div>
+                        <div className="flex items-center justify-center flex-1">
+                            <Image src="/idealens.png" alt="IdeaLens" width={250} height={100} className="h-36 w-auto object-contain drop-shadow-md opacity-50 blur-sm" priority />
+                        </div>
+                        <div className="flex items-center justify-end flex-shrink-0">
+                            <Image src="/cie.png" alt="CIE" width={300} height={120} className="h-12 w-auto object-contain opacity-50 blur-sm" priority />
+                        </div>
                     </div>
-                    <div className="w-1/3 flex border-x border-transparent justify-center">
-                        <img src="/idealens.png" alt="IdeaLens" className="h-16 md:h-24 w-auto object-contain scale-[1.2] origin-center opacity-50 blur-sm" />
-                    </div>
-                    <div className="w-1/3 flex justify-end">
-                        <img src="/cie.png" alt="CIE" className="h-10 md:h-12 w-auto object-contain opacity-50 blur-sm" />
-                    </div>
-                </header>
+                </div>
                 <div className="flex-1 flex flex-col items-center justify-center p-20 space-y-4">
                     <div className="h-12 w-12 border-4 border-brand-accent border-t-transparent rounded-full animate-spin"></div>
                     <div className="text-xl text-slate-500 font-bold uppercase italic tracking-widest animate-pulse">Initializing Interface...</div>
@@ -234,31 +310,51 @@ function TeamDetailsContent() {
 
     return (
         <div className="relative min-h-screen bg-slate-50 font-sans text-slate-900 text-[17px] selection:bg-brand-accent/30 selection:text-white">
-            {/* --- UNIFIED HEADER --- */}
-            <header className="w-full px-6 md:px-12 pt-0 pb-2 -mt-4 flex items-center justify-between" style={{ zoom: 0.9 }}>
-                <div className="flex items-center gap-8 md:gap-12 w-1/3">
-                    <button
-                        onClick={() => router.push('/')}
-                        className="group flex items-center shrink-0 gap-2 py-2 transition-all text-xs font-black uppercase tracking-widest text-slate-700 hover:text-brand-accent"
-                    >
-                        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                        Back
-                    </button>
-                    <img src="/pes_v2.png" alt="PES" className="h-20 md:h-28 w-auto object-contain" />
+            {/* --- UNIFIED HEADER - Matching Homepage --- */}
+            <div className="w-full px-6 -mt-8 pb-2 bg-slate-50">
+                <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
+                    {/* PES Logo + BACK Button */}
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => router.back()}
+                                className="group flex items-center justify-center shrink-0 h-9 w-9 rounded-full transition-all text-slate-700 hover:bg-slate-200 hover:text-brand-accent"
+                                title="Go Back"
+                            >
+                                <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+                            </button>
+                            <button
+                                onClick={() => router.push('/')}
+                                className="group flex items-center justify-center shrink-0 h-9 w-9 rounded-full transition-all text-slate-700 hover:bg-slate-200 hover:text-brand-accent"
+                                title="Home Dashboard"
+                            >
+                                <Home size={18} className="group-hover:scale-105 transition-transform" />
+                            </button>
+                        </div>
+                        <Image src="/pes_v2.png" alt="PES" width={300} height={300} className="h-12 w-auto object-contain" priority />
+                    </div>
+
+                    {/* IdeaLens Center */}
+                    <div className="flex items-center justify-center flex-1">
+                        <Image src="/idealens.png" alt="IdeaLens" width={250} height={100} className="h-36 w-auto object-contain drop-shadow-md" priority />
+                    </div>
+
+                    {/* CIE Right */}
+                    <div className="flex items-center justify-end flex-shrink-0">
+                        <Image src="/cie.png" alt="CIE" width={300} height={120} className="h-12 w-auto object-contain" priority />
+                    </div>
                 </div>
-                
-                <div className="w-1/3 flex border-x border-transparent justify-center">
-                    <img src="/idealens.png" alt="IdeaLens" className="h-32 md:h-48 w-auto object-contain scale-[1.2] origin-center" />
-                </div>
-                
-                <div className="w-1/3 flex justify-end">
-                    <img src="/cie.png" alt="CIE" className="h-20 md:h-28 w-auto object-contain" />
-                </div>
-            </header>
+            </div>
 
             <main className="w-full max-w-[1700px] mx-auto px-6 lg:px-12 mt-6 pb-20" style={{ zoom: 0.9 }}>
+                
+                {/* SEARCH BAR */}
+                <div className="flex justify-center mb-8">
+                    <TeamSearchDropdown />
+                </div>
+
                 <div className="flex flex-col gap-12">
-                    
+
                     {/* --- TEAM IDENTITY SECTION --- */}
                     <section className="flex items-start gap-4">
                         <div className="h-14 w-1.5 mt-2 bg-brand-accent rounded-full shrink-0"></div>
@@ -284,7 +380,7 @@ function TeamDetailsContent() {
 
                     {/* --- PARALLEL SIGNALS & SCORING --- */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-                        
+
                         {/* LEFT: SIGNALS STACK */}
                         <div className="lg:col-span-7 flex flex-col gap-10">
                             <section>
@@ -292,18 +388,38 @@ function TeamDetailsContent() {
                                     <h2 className="text-2xl font-black italic tracking-tight text-slate-900">Signals</h2>
                                 </div>
                                 <div className="flex flex-col gap-8">
-                                    {['market_context_signal', 'execution_readiness_signal', 'problem_description'].map((key) => {
-                                        const value = aiEval?.[key] || submission?.[key];
+                                    {['problem_description', 'market_context_signal', 'execution_readiness_signal'].map((key) => {
+                                        let value = aiEval?.[key] || submission?.[key];
                                         if (!value) return null;
+
+                                        // Clean up unwanted characters from Google Forms/Sheets flow
+                                        if (typeof value === 'string') {
+                                            // 1. Remove carriage returns
+                                            // 2. Normalize multiple newlines (3+) to double newlines
+                                            // 3. Temporarily protect double newlines
+                                            // 4. Convert single newlines to spaces
+                                            // 5. Restore protected double newlines
+                                            value = value.replace(/\r/g, '')
+                                                .replace(/\n{3,}/g, '\n\n')
+                                                .split('\n\n')
+                                                .map(p => p.replace(/\n/g, ' ').trim())
+                                                .join('\n\n')
+                                                .trim();
+                                        }
+
+                                        const isAI = key === 'market_context_signal' || key === 'execution_readiness_signal';
+                                        const label = key === 'problem_description'
+                                            ? "Problem Description (as per Student submission)"
+                                            : formatLabel(key) + (isAI ? " (AI Generated)" : "");
 
                                         return (
                                             <div key={key} className="flex flex-col border-l-2 border-slate-100 pl-6 py-1">
                                                 <div className="pb-1">
-                                                    <span className="text-[14px] font-black tracking-[0.15em] text-slate-900 uppercase">
-                                                        {formatLabel(key)}
+                                                    <span className={`font-black tracking-[0.15em] uppercase ${key === 'problem_description' ? 'text-[18px] text-black' : 'text-[14px] text-slate-900'}`}>
+                                                        {label}
                                                     </span>
                                                 </div>
-                                                <div className="text-[15px] leading-relaxed text-slate-700 whitespace-pre-wrap font-medium">
+                                                <div className="text-[15px] leading-relaxed text-black whitespace-pre-wrap font-medium">
                                                     {renderValue(value)}
                                                 </div>
                                             </div>
@@ -313,40 +429,170 @@ function TeamDetailsContent() {
                             </section>
 
                             {/* --- SUBMISSION DATA (Team Details, Collapsible) --- */}
-                            <details className="group overflow-hidden transition-all duration-300 mt-4 border-t border-slate-100">
-                                <summary className="cursor-pointer py-6 flex items-center justify-between text-2xl font-black italic tracking-tight text-slate-900 transition-colors select-none">
-                                    Team Details
-                                    <span className="transition-transform duration-300 group-open:-rotate-180 text-slate-400">
-                                        <ChevronDown size={24} />
+                            {/* --- SUBMISSION DATA (Team Details, Collapsible) --- */}
+                            <details className="group overflow-hidden transition-all duration-300 mt-4 border border-slate-200 bg-white shadow-md rounded-2xl hover:shadow-lg" open>
+                                <summary className="cursor-pointer py-6 px-6 flex items-center justify-between text-2xl font-black italic tracking-tight text-slate-900 transition-colors select-none hover:text-brand-accent">
+                                    <div className="flex items-center gap-3">
+                                        Team Details
+                                    </div>
+                                    <span className="transition-transform duration-300 group-open:-rotate-180 text-slate-400 group-hover:text-brand-accent">
+                                        <ChevronDown size={28} />
                                     </span>
                                 </summary>
-                                <div className="pb-10 pt-2">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-                                        {Object.entries(submission).map(([key, value]) => {
-                                            const excludedKeys = [
-                                                'id', 'team_name', 'project_title', 'created_at', 'updated_at', 
-                                                'submitted_at', 'email', 'track_vertical', 'team_members', 'primary_contact', 
-                                                'problem_description', 
-                                                'pretotyping_done', 'pretypes_used', 'pretotype_experiment_description', 
-                                                'users_interacted_count', 'key_insights_pivots', 'team_advantage', 
-                                                'pitch_deck_pdf', 'demo_link', 'preferred_day_16_march', 
-                                                'preferred_day_17_march', 'preferred_day_18_march', 'preferred_day_any', 
-                                                'consent_box'
-                                            ];
-                                            if (excludedKeys.includes(key) || key.startsWith('preferred_') || key === 'consent_box') return null;
+                                <div className="pb-10 pt-4 px-6 border-t border-slate-100 flex flex-col gap-4">
+                                    {(() => {
+                                        const sections = [
+                                            {
+                                                title: "Problem & Solution",
+                                                icon: Target,
+                                                defaultOpen: true,
+                                                keys: ["solution_statement_short", "solution_stage"]
+                                            },
+                                            {
+                                                title: "Customer & Market",
+                                                icon: Users,
+                                                defaultOpen: false,
+                                                keys: ["customer_segments_end_users", "customer_segments_paying_customers", "customer_segments_influencers", "customer_segments_partners", "customer_selection_reason", "target_geography", "target_market_segments"]
+                                            },
+                                            {
+                                                title: "Market Sizing",
+                                                icon: PieChart,
+                                                defaultOpen: false,
+                                                keys: ["tam_total_addressable_market", "sam_serviceable_available_market", "som_serviceable_obtainable_market", "tam", "sam", "som"]
+                                            },
+                                            {
+                                                title: "Product & Validation",
+                                                icon: Microscope,
+                                                defaultOpen: false,
+                                                keys: ["critical_assumptions", "pretypes_used", "pretotypes_used"]
+                                            },
+                                            {
+                                                title: "Competition",
+                                                icon: Swords,
+                                                defaultOpen: false,
+                                                keys: ["competitors", "competitor_positioning"]
+                                            },
+                                            {
+                                                title: "Business Model",
+                                                icon: Briefcase,
+                                                defaultOpen: false,
+                                                keys: ["revenue_model_type", "revenue_model_description", "cost_structure"]
+                                            },
+                                            {
+                                                title: "Value Propositions",
+                                                icon: Gem,
+                                                defaultOpen: false,
+                                                keys: ["customer_value_proposition", "investor_value_proposition"]
+                                            }
+                                        ];
+
+                                        const excludedKeys = [
+                                            'id', 'team_name', 'project_title', 'created_at', 'updated_at',
+                                            'submitted_at', 'email', 'track_vertical', 'team_members', 'primary_contact',
+                                            'problem_description', 'problem_statement_short',
+                                            'pretotyping_done', 'pretotype_experiment_description',
+                                            'users_interacted_count', 'key_insights_pivots', 'team_advantage',
+                                            'pitch_deck_pdf', 'demo_link', 'preferred_day_16_march',
+                                            'preferred_day_17_march', 'preferred_day_18_march', 'preferred_day_any',
+                                            'consent_box'
+                                        ];
+
+                                        const usedKeys = new Set<string>();
+                                        const renderedSections = sections.map((section, idx) => {
+                                            const sectionFields = section.keys.filter(k => {
+                                                if (submission[k] !== undefined && submission[k] !== null && submission[k] !== '') {
+                                                    usedKeys.add(k);
+                                                    return true;
+                                                }
+                                                return false;
+                                            });
+
+                                            if (sectionFields.length === 0) return null;
 
                                             return (
-                                                <div key={key} className="flex flex-col gap-1.5 h-fit">
-                                                    <span className="text-[12px] font-black tracking-widest text-slate-900 uppercase">
-                                                        {formatLabel(key)}
-                                                    </span>
-                                                    <div className="text-[13px] font-semibold text-slate-700 leading-snug">
-                                                        {renderValue(value)}
+                                                <details key={idx} className="group/sub overflow-hidden border border-slate-100 bg-white shadow-sm rounded-xl transition-all" open={section.defaultOpen}>
+                                                    <summary className="cursor-pointer py-4 px-5 flex items-center justify-between text-xl font-bold tracking-tight text-slate-800 transition-colors select-none hover:bg-slate-50">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="p-1.5 bg-brand-accent/10 rounded-lg text-brand-accent">
+                                                                <section.icon size={20} strokeWidth={2.5} />
+                                                            </div>
+                                                            <span>{section.title}</span>
+                                                        </div>
+                                                        <span className="transition-transform duration-300 group-open/sub:-rotate-180 text-slate-400">
+                                                            <ChevronDown size={20} />
+                                                        </span>
+                                                    </summary>
+                                                    <div className="p-5 pt-0 border-t border-slate-50 mt-1">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8 mt-6">
+                                                            {sectionFields.map(key => {
+                                                                let label = formatLabel(key);
+                                                                if (key === 'tam_total_addressable_market') label = 'TAM (Total Addressable Market)';
+                                                                if (key === 'sam_serviceable_available_market') label = 'SAM (Serviceable Available Market)';
+                                                                if (key === 'som_serviceable_obtainable_market') label = 'SOM (Serviceable Obtainable Market)';
+                                                                if (key === 'tam') label = 'TAM (Total Addressable Market)';
+                                                                if (key === 'sam') label = 'SAM (Serviceable Available Market)';
+                                                                if (key === 'som') label = 'SOM (Serviceable Obtainable Market)';
+                                                                if (key === 'pretypes_used' || key === 'pretotypes_used') label = 'Pretotypes Used';
+
+                                                                return (
+                                                                    <div key={key} className="flex flex-col gap-1.5 h-fit">
+                                                                        <span className="text-[12px] font-black tracking-widest text-slate-900 uppercase">
+                                                                            {label}
+                                                                        </span>
+                                                                        <div className="text-[13px] font-semibold text-slate-700 leading-snug">
+                                                                            {renderValue(submission[key])}
+                                                                        </div>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                </details>
                                             );
-                                        })}
-                                    </div>
+                                        });
+
+                                        // Catch all remaining fields
+                                        const otherKeys = Object.keys(submission).filter(k => 
+                                            !excludedKeys.includes(k) && 
+                                            !k.startsWith('preferred_') && 
+                                            !usedKeys.has(k) &&
+                                            submission[k] !== null && submission[k] !== ''
+                                        );
+
+                                        if (otherKeys.length > 0) {
+                                            renderedSections.push(
+                                                <details key="other" className="group/sub overflow-hidden border border-slate-100 bg-white shadow-sm rounded-xl transition-all">
+                                                    <summary className="cursor-pointer py-4 px-5 flex items-center justify-between text-xl font-bold tracking-tight text-slate-800 transition-colors select-none hover:bg-slate-50">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="p-1.5 bg-slate-100 rounded-lg text-slate-500">
+                                                                <PlusCircle size={20} strokeWidth={2.5} />
+                                                            </div>
+                                                            <span>Additional Details</span>
+                                                        </div>
+                                                        <span className="transition-transform duration-300 group-open/sub:-rotate-180 text-slate-400">
+                                                            <ChevronDown size={20} />
+                                                        </span>
+                                                    </summary>
+                                                    <div className="p-5 pt-0 border-t border-slate-50 mt-1">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8 mt-6">
+                                                            {otherKeys.map(key => (
+                                                                <div key={key} className="flex flex-col gap-1.5 h-fit">
+                                                                    <span className="text-[12px] font-black tracking-widest text-slate-900 uppercase">
+                                                                        {formatLabel(key)}
+                                                                    </span>
+                                                                    <div className="text-[13px] font-semibold text-slate-700 leading-snug">
+                                                                        {renderValue(submission[key])}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </details>
+                                            );
+                                        }
+
+                                        return renderedSections;
+                                    })()}
                                 </div>
                             </details>
                         </div>
@@ -354,95 +600,97 @@ function TeamDetailsContent() {
                         {/* RIGHT: JURY SCORE BOARD (Dynamic Vertical Stack) */}
                         <div className="lg:col-span-5 flex flex-col gap-8 lg:sticky lg:top-8">
                             <div className="flex flex-col gap-6">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-2xl font-black italic tracking-tight text-[#0F1E2E]">Ignite Phase 2 Score</h2>
-                                    <div className="text-[10px] font-black px-2 py-1 bg-brand-accent/10 text-brand-accent rounded text-xs uppercase tracking-widest italic">Live Session</div>
-                                </div>
-                                
+                                <h2 className="text-2xl font-black italic tracking-tight text-[#0F1E2E]">Jury Scoring Board</h2>
+
                                 <div className="flex flex-col gap-4">
                                     {[
-                                        { label: "DESIRABILITY", key: "d" as const, aiKey: "desirability_score", humanKey: "desirability_score", icon: "🖤" },
-                                        { label: "FEASIBILITY", key: "f" as const, aiKey: "feasibility_score", humanKey: "feasibility_score", icon: "🛠️" },
-                                        { label: "VIABILITY", key: "v" as const, aiKey: "viability_score", humanKey: "viability_score", icon: "💰" },
+                                        { label: "DESIRABILITY", key: "d" as const, aiKey: "desirability_score", icon: "🖤" },
+                                        { label: "FEASIBILITY", key: "f" as const, aiKey: "feasibility_score", icon: "🛠️" },
+                                        { label: "VIABILITY", key: "v" as const, aiKey: "viability_score", icon: "💰" },
                                     ].map((field) => (
                                         <div key={field.key} className="bg-white rounded-[20px] border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] p-5 flex flex-row items-center justify-between gap-6 transition-transform hover:scale-[1.01] overflow-hidden group">
-                                            <div className="flex flex-col gap-1 min-w-[140px]">
+                                            <div className="flex flex-col gap-1 min-w-[120px]">
                                                 <div className="flex items-center gap-2 text-[12px] font-black text-slate-900 uppercase tracking-widest leading-none">
                                                     <span className="text-lg opacity-80 group-hover:opacity-100 transition-opacity">{field.icon}</span>
                                                     {field.label}
                                                 </div>
-                                                
-                                                {/* Phase 1 Reference Data */}
-                                                {(aiEval?.[field.aiKey] !== undefined || humanEval?.[field.humanKey] !== undefined) && (
-                                                <div className="mt-3 flex flex-col gap-1.5">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic opacity-60">Phase 2 Ref</span>
-                                                        <div className="h-px flex-1 bg-slate-50"></div>
+                                                {phase === "phase3" ? (
+                                                    <div className="mt-2 flex flex-col gap-1">
+                                                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Phase 2 Ref</span>
+                                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded w-fit uppercase tracking-tighter">
+                                                            <span>AI: <span className="font-black text-slate-900">{aiEval?.[field.aiKey] || '-'}</span></span>
+                                                            <span className="opacity-50">|</span>
+                                                            <span>Jury: <span className="font-black text-slate-900">{humanEval?.[field.aiKey] || '-'}</span></span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-4">
-                                                        {aiEval?.[field.aiKey] !== undefined && (
-                                                            <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-0.5 rounded border border-slate-100" title="Previous AI Score">
-                                                                <span className="text-[8px] font-black text-brand-accent/70 uppercase tracking-tighter">AI</span>
-                                                                <span className="text-[11px] font-black text-brand-accent">{aiEval[field.aiKey]}</span>
-                                                            </div>
-                                                        )}
-                                                        {humanEval?.[field.humanKey] !== undefined && (
-                                                            <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-0.5 rounded border border-slate-100" title="Previous Human Score">
-                                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">JURY</span>
-                                                                <span className="text-[11px] font-black text-slate-600">{humanEval[field.humanKey]}</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
+                                                ) : (
+                                                    jurySubmitted && field.aiKey && aiEval?.[field.aiKey] && (
+                                                        <div className="mt-2 flex items-center gap-2">
+                                                            <span className="text-[10px] font-bold text-brand-accent/60 uppercase tracking-tighter">AI Score</span>
+                                                            <span className="text-xs font-black text-brand-accent">{aiEval[field.aiKey]}</span>
+                                                        </div>
+                                                    )
                                                 )}
                                             </div>
-                                            
-                                            <div className="flex flex-row items-center gap-4 bg-slate-50/50 rounded-xl px-6 py-2 border border-slate-100 ring-1 ring-transparent focus-within:ring-brand-accent/20 transition-all">
+
+                                            <div className="flex flex-row items-center gap-4 bg-slate-50/50 rounded-xl px-6 py-2 border border-slate-100">
                                                 <input
                                                     type="text"
+                                                    disabled={jurySubmitted}
                                                     value={juryScores[field.key]}
                                                     onChange={(e) => setJuryScores({ ...juryScores, [field.key]: e.target.value })}
-                                                    className="w-10 text-center text-3xl font-black text-[#0F1E2E] bg-transparent focus:outline-none"
+                                                    className="w-10 text-center text-3xl font-black text-[#0F1E2E] bg-transparent focus:outline-none disabled:opacity-50"
                                                     placeholder="-"
                                                 />
-                                                <div className="flex flex-col items-center opacity-30 select-none">
+                                                <div className="flex flex-col items-center opacity-100 select-none">
                                                     <div className="w-px h-6 bg-slate-400"></div>
-                                                    <span className="text-[10px] font-black italic leading-none mt-1">10</span>
+                                                    <span className="text-[18px] font-black italic leading-none mt-1 text-black">10</span>
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                                
+
                                 <div className="flex flex-col gap-4 mt-2">
-                                    <button
-                                        onClick={handleJurySubmit}
-                                        disabled={submittingJury}
-                                        className="w-full py-4 rounded-xl bg-brand-accent text-white font-black text-[13px] uppercase tracking-[0.2em] shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.15)] hover:bg-brand-blue transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
-                                    >
-                                        {submittingJury ? "Submitting Analysis..." : jurySubmitted ? "Update Analysis" : "Submit Phase 2 Score"}
-                                    </button>
+                                    {!jurySubmitted && (
+                                        <button
+                                            onClick={handleJurySubmit}
+                                            disabled={submittingJury}
+                                            className="w-1/2 mx-auto py-2.5 rounded-xl bg-brand-accent text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.15)] hover:bg-brand-blue transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+                                        >
+                                            {submittingJury ? "Submitting Analysis..." : "Submit Jury Score"}
+                                        </button>
+                                    )}
 
                                     {jurySubmitted && (
-                                        <div className="w-full py-3.5 rounded-xl bg-emerald-50 text-emerald-600 font-bold text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 border border-emerald-100 italic transition-all">
-                                            <CheckCircle2 size={16} /> Ignite Verdict Registered
+                                        <div className="flex flex-col gap-4">
+                                            <div className="w-full py-3.5 rounded-xl bg-emerald-500 text-white font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(16,185,129,0.2)]">
+                                                <CheckCircle2 size={16} /> Verdict Registered
+                                            </div>
+
+                                            {aiAvg && (
+                                                <div className="flex flex-col gap-3 w-full">
+                                                    <div className="flex items-center gap-3 w-full">
+                                                        <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-brand-accent/20 shadow-sm flex items-center justify-between overflow-hidden relative">
+                                                            <div className="absolute top-0 right-0 w-1 h-full bg-brand-accent/20"></div>
+                                                            <span className="text-[10px] font-black tracking-widest text-[#0F1E2E] uppercase">AI Average</span>
+                                                            <span className="text-xl font-black text-brand-accent italic">{aiAvg}</span>
+                                                        </div>
+                                                        <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-emerald-500/20 shadow-sm flex items-center justify-between overflow-hidden relative">
+                                                            <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500/20"></div>
+                                                            <span className="text-[10px] font-black tracking-widest text-[#0F1E2E] uppercase">Jury Average</span>
+                                                            <span className="text-xl font-black text-emerald-600 italic">{juryAvg}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between">
+                                                        <span className="text-[11px] font-bold tracking-widest text-slate-900 uppercase">Variance</span>
+                                                        <span className="text-base font-black text-slate-900 border-b-2 border-slate-100">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
-
-                                {jurySubmitted && aiAvg && (
-                                    <div className="flex items-center gap-3 w-full mt-4">
-                                        <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between overflow-hidden relative">
-                                            <div className="absolute top-0 right-0 w-1 h-full bg-brand-accent/10"></div>
-                                            <span className="text-[10px] font-black tracking-widest text-[#0F1E2E] uppercase">Ai avg</span>
-                                            <span className="text-xl font-black text-brand-accent italic">{aiAvg}</span>
-                                        </div>
-                                        <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between">
-                                            <span className="text-[11px] font-bold tracking-widest text-slate-900 uppercase">Variance</span>
-                                            <span className="text-base font-black text-slate-900 border-b-2 border-slate-100">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
@@ -466,7 +714,7 @@ function TeamDetailsContent() {
                     animation: premium-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 }
             `}</style>
-        </div>
+        </div >
     );
 }
 
@@ -475,9 +723,19 @@ export default function TeamDetailsPage() {
         <Suspense fallback={
             <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
                 {/* Minimal Loading Header */}
-                <header className="w-full px-6 py-3 bg-white border-b border-slate-200 shadow-sm flex justify-center">
-                    <img src="/idealens.png" alt="IdeaLens" className="h-16 blur-sm opacity-50 w-auto object-contain" />
-                </header>
+                <div className="w-full px-6 -mt-8 pb-2 bg-slate-50">
+                    <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
+                        <div className="flex items-center justify-start flex-shrink-0">
+                            <Image src="/pes_v2.png" alt="PES" width={300} height={300} className="h-12 w-auto object-contain opacity-50 blur-sm" priority />
+                        </div>
+                        <div className="flex items-center justify-center flex-1">
+                            <Image src="/idealens.png" alt="IdeaLens" width={250} height={100} className="h-36 w-auto object-contain drop-shadow-md opacity-50 blur-sm" priority />
+                        </div>
+                        <div className="flex items-center justify-end flex-shrink-0">
+                            <Image src="/cie.png" alt="CIE" width={300} height={120} className="h-12 w-auto object-contain opacity-50 blur-sm" priority />
+                        </div>
+                    </div>
+                </div>
                 <div className="flex-1 flex flex-col items-center justify-center p-20 space-y-6">
                     <div className="h-12 w-12 border-4 border-brand-accent border-t-transparent rounded-full animate-spin"></div>
                     <div className="text-lg text-slate-500 font-bold uppercase italic tracking-widest animate-pulse">

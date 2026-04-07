@@ -5,118 +5,129 @@ import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import LogosHeader from "./components/LogosHeader";
-import { Search, Check, ArrowRight, Plus, LayoutGrid, List, BarChart3, ChevronRight } from "lucide-react";
+import { Search, Check, X, ArrowRight, Plus, LayoutGrid, List, BarChart3, ChevronRight } from "lucide-react";
+import { getSmartSummary } from "./utils/teamSummaries";
 
 type TeamPreview = {
   id: string;
   team_name: string | null;
   email: string | null;
   submitted_at: string | null;
+  problem_statement_short?: string | null;
+  team_members?: string | null;
+  isEvaluated?: boolean;
 };
 
 export default function Home() {
   const [query, setQuery] = useState("");
-  const [allFetchedTeams, setAllFetchedTeams] = useState<TeamPreview[]>([]);
-  const [intersectNames, setIntersectNames] = useState<string[]>([]);
-  const [phaseMode, setPhaseMode] = useState<'phase2' | 'phase3'>('phase3');
+  const [teams, setTeams] = useState<TeamPreview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'detailed' | 'compact' | 'comparative'>('compact');
   const [filter, setFilter] = useState<'all' | 'evaluated' | 'pending'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'score' | 'index'>('name');
+  const [phase, setPhase] = useState<"phase2" | "phase3">("phase2");
+  const [phase3TeamNames, setPhase3TeamNames] = useState<string[]>([]);
+  const [phase2EvaluatedIds, setPhase2EvaluatedIds] = useState<Set<string>>(new Set());
+  const [phase3EvaluatedIds, setPhase3EvaluatedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        // 1. Fetch AI shortlisted team names (ai_evaluations2)
-        const { data: aiData, error: aiError } = await supabase
-          .from("ai_evaluations2")
-          .select("team_name");
-
-        if (aiError) {
-          console.error("Error fetching AI shortlist:", aiError.message);
-          throw aiError;
-        }
-
-        // 2. Fetch Human shortlisted team names (human_evaluations2)
-        const { data: humanData, error: humanError } = await supabase
-          .from("human_evaluations2")
-          .select("team_name");
-
-        if (humanError) {
-          console.error("Error fetching human shortlist:", humanError.message);
-          throw humanError;
-        }
-
-        // 3. Find intersection by team_name (Teams present in BOTH)
-        // We use trimmed lowercase for the intersection logic
-        const aiNames = (aiData || []).map(s => (s.team_name || "").trim()).filter(Boolean);
-        const humanNames = (humanData || []).map(s => (s.team_name || "").trim().toLowerCase()).filter(Boolean);
-        const intersectLower = aiNames.filter(n => humanNames.includes(n.toLowerCase())).map(n => n.toLowerCase());
-
-        console.log("DEBUG LOGS:");
-        console.log(" - ai_evaluations2 count:", aiData?.length || 0);
-        console.log(" - human_evaluations2 count:", humanData?.length || 0);
-        console.log(" - intersection count:", intersectLower.length);
-
-        setIntersectNames(intersectLower);
-
-        // 4. Fetch all submissions and filter in-memory to handle whitespace inconsistencies robustly
-        const { data: allSubmissions, error: subError } = await supabase
-          .from("idealens_submissions2")
-          .select("id, submitted_at, email, team_name")
-          .order("submitted_at", { ascending: false });
+        // Fetch teams and evaluation status in parallel
+        const [ 
+          { data, error: subError }, 
+          { data: evalsData }, 
+          { data: p3EvalsData }, 
+          { data: aiEvalsData, error: aiEvalsError },
+          { data: aiEvals3Data }
+        ] = await Promise.all([
+          supabase
+            .from("idealens_submissions2")
+            .select("id, submitted_at, email, team_name, problem_statement_short, team_members")
+            .order("submitted_at", { ascending: false }),
+          supabase
+            .from("human_evaluations")
+            .select("idea_id"),
+          supabase
+            .from("human_evaluations_phase3")
+            .select("idea_id"),
+          supabase
+            .from("ai_evaluations2")
+            .select("team_name"),
+          supabase
+            .from("ai_evaluations3")
+            .select("team_name")
+        ]);
 
         if (subError) {
           console.error("Supabase Error fetching teams:", subError);
           throw subError;
         }
 
-        setAllFetchedTeams(allSubmissions as TeamPreview[]);
+        const p2Evaluated = new Set((evalsData || []).map((e: any) => String(e.idea_id)));
+        const p3Evaluated = new Set((p3EvalsData || []).map((e: any) => String(e.idea_id)));
+        
+        setPhase2EvaluatedIds(p2Evaluated);
+        setPhase3EvaluatedIds(p3Evaluated);
+        
+        const phase3Names = (aiEvals3Data || aiEvalsData || [])
+          .map((e: any) => e.team_name ? String(e.team_name).trim().toLowerCase() : "")
+          .filter(Boolean);
+        
+        setPhase3TeamNames(phase3Names);
+
+        setTeams(data as TeamPreview[]);
       } catch (err: any) {
         console.error("Dashboard Intelligence Error:", err);
-        setError(`Failed to load intelligence: ${err.message || String(err)}. Check if your Supabase project is active and reachable.`);
+        setError(`Failed to load intelligence: ${err.message || String(err)}`);
       } finally {
         setLoading(false);
       }
     };
 
-    // Load viewMode and phaseMode from localStorage
+    // Load viewMode from localStorage
     if (typeof window !== 'undefined') {
       const savedViewMode = localStorage.getItem('ideaLensViewMode') as 'detailed' | 'compact';
       if (savedViewMode) setViewMode(savedViewMode);
-      
-      const savedPhaseMode = localStorage.getItem('ideaLensPhaseMode') as 'phase2' | 'phase3';
-      if (savedPhaseMode) setPhaseMode(savedPhaseMode);
     }
 
     fetchData();
   }, []);
 
-  // Persist settings to localStorage
+  // Persist viewMode to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('ideaLensViewMode', viewMode);
-      localStorage.setItem('ideaLensPhaseMode', phaseMode);
     }
-  }, [viewMode, phaseMode]);
+  }, [viewMode]);
 
-
+  const stats = useMemo(() => {
+    const total = teams.length;
+    const evaluated = 0; // Simplified
+    const progress = 0;
+    return { total, evaluated, progress };
+  }, [teams]);
 
   const processedTeams = useMemo(() => {
-    let baseTeams = allFetchedTeams;
-    if (phaseMode === 'phase3') {
-      baseTeams = allFetchedTeams.filter(sub => {
-        const name = (sub.team_name || "").trim().toLowerCase();
-        return intersectNames.includes(name);
+    let result = teams;
+
+    if (phase === "phase3") {
+      result = result.filter((t) => {
+        const teamName = (t.team_name || "").trim().toLowerCase();
+        return phase3TeamNames.includes(teamName);
       });
+      console.log("DEBUG: Final Phase 3 filtered count:", result.length);
     }
 
-    let result = baseTeams.filter((team) =>
-      (team.team_name || "").toLowerCase().includes(query.toLowerCase())
-    );
+    result = result.filter((team) => {
+      const q = query.toLowerCase();
+      const matchName = (team.team_name || "").toLowerCase().includes(q);
+      const matchMembers = (team.team_members || "").toLowerCase().includes(q);
+      return matchName || matchMembers;
+    });
 
     if (sortBy === 'name') {
       result = [...result].sort((a, b) => (a.team_name || "").localeCompare(b.team_name || ""));
@@ -125,14 +136,7 @@ export default function Home() {
     }
 
     return result;
-  }, [allFetchedTeams, intersectNames, phaseMode, query, sortBy]);
-
-  const stats = useMemo(() => {
-    const total = processedTeams?.length || 0;
-    const evaluated = 0; // Simplified
-    const progress = 0;
-    return { total, evaluated, progress };
-  }, [processedTeams]);
+  }, [teams, query, sortBy, phase]);
 
   return (
     <div className="relative min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-brand-accent/30">
@@ -140,10 +144,10 @@ export default function Home() {
       {/* Logos Container */}
       <LogosHeader />
 
-      <main className="w-full px-12 mt-0 pb-10">
+      <main className="w-full px-12 pt-1 pb-10">
 
         {/* SEARCH BAR & PHASE TOGGLE */}
-        <div className="flex flex-col items-center mb-10 -mt-8 gap-6">
+        <div className="flex flex-col items-center justify-center mb-8 gap-5">
           <div className="relative w-full max-w-md group">
             <input
               type="text"
@@ -154,21 +158,28 @@ export default function Home() {
             />
             <Search className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-hover:text-brand-accent transition-colors" />
           </div>
-          
-          {/* Toggle Control */}
-          <div className="flex bg-slate-200/50 p-1 rounded-xl w-72 shadow-inner">
-             <button 
-               onClick={() => setPhaseMode('phase2')}
-               className={`flex-1 py-2 text-[10px] font-black uppercase tracking-[0.2em] italic rounded-lg transition-all ${phaseMode === 'phase2' ? 'bg-white shadow pointer-events-none text-brand-accent' : 'text-slate-500 hover:text-slate-900'}`}
-             >
-               Phase 2 (All Teams)
-             </button>
-             <button 
-               onClick={() => setPhaseMode('phase3')}
-               className={`flex-1 py-2 text-[10px] font-black uppercase tracking-[0.2em] italic rounded-lg transition-all ${phaseMode === 'phase3' ? 'bg-white shadow pointer-events-none text-brand-accent' : 'text-slate-500 hover:text-slate-900'}`}
-             >
-               Phase 3 (Top 21)
-             </button>
+
+          <div className="flex items-center p-1 bg-slate-200/50 rounded-[14px] shadow-inner border border-slate-200/50">
+            <button
+              onClick={() => setPhase("phase2")}
+              className={`px-6 py-2 rounded-[10px] text-[11px] font-black uppercase tracking-widest transition-all ${
+                phase === "phase2"
+                  ? "bg-white text-brand-accent shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+              }`}
+            >
+              Phase 2 (All Teams)
+            </button>
+            <button
+              onClick={() => setPhase("phase3")}
+              className={`px-6 py-2 rounded-[10px] text-[11px] font-black uppercase tracking-widest transition-all ${
+                phase === "phase3"
+                  ? "bg-white text-brand-accent shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+              }`}
+            >
+              Phase 3 (Top 21)
+            </button>
           </div>
         </div>
 
@@ -190,41 +201,79 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {processedTeams.map((team) => (
+            {processedTeams.map((team) => {
+              const isEvaluated = phase === "phase3" 
+                ? phase3EvaluatedIds.has(String(team.id))
+                : phase2EvaluatedIds.has(String(team.id));
+
+              return (
               <Link
                 key={team.id}
-                href={`/idea/team?id=${encodeURIComponent(team.id)}`}
-                className="group bg-white rounded-[24px] border border-slate-100 p-5 shadow-sm hover:shadow-xl hover:scale-[1.03] transition-all flex flex-col items-center text-center gap-4 relative overflow-hidden"
+                href={`/idea/team?id=${encodeURIComponent(team.id)}&phase=${phase}`}
+                className="group bg-white rounded-[14px] border border-slate-100 p-2.5 shadow-sm hover:shadow-xl hover:scale-[1.03] transition-all flex flex-col items-center text-center gap-2 relative overflow-hidden h-40 w-full"
               >
+                {phase !== "phase3" && (isEvaluated ? (
+                    <div className="absolute bottom-3 right-3 flex items-center justify-center z-10" title="Evaluated">
+                        <svg fill="currentColor" viewBox="0 0 100 100" className="w-[14px] h-[14px] text-green-500 drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.5)]">
+                          <polygon points="35,85 10,60 20,50 35,65 80,15 90,25" />
+                        </svg>
+                    </div>
+                ) : (
+                    <div className="absolute bottom-3 right-3 flex items-center justify-center z-10" title="Not Evaluated">
+                        <svg fill="currentColor" viewBox="0 0 100 100" className="w-[14px] h-[14px] text-rose-500 drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.5)]">
+                          <polygon points="80,30 70,20 50,40 30,20 20,30 40,50 20,70 30,80 50,60 70,80 80,70 60,50" />
+                        </svg>
+                    </div>
+                ))}
+                
                 {/* Visual Accent */}
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-brand-accent/5 group-hover:bg-brand-accent transition-colors"></div>
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-brand-accent/5 group-hover:bg-brand-accent transition-colors"></div>
 
                 {/* Logo Section */}
-                <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center overflow-hidden relative shadow-lg group-hover:rotate-3 transition-transform">
+                <div
+                  className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden relative shadow-md group-hover:rotate-3 transition-transform"
+                  style={{
+                    backgroundColor: [
+                      '#FFD4B8', // Pastel Peach
+                      '#B8E6D5', // Pastel Mint
+                      '#F4C2D4', // Pastel Rose
+                      '#B8D8E8', // Pastel Sky
+                      '#E6D5F0', // Pastel Lavender
+                      '#FFF4C4', // Pastel Cream
+                      '#FFCCCB', // Pastel Coral
+                      '#C4E5E7'  // Pastel Aqua
+                    ][(team.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % 8]
+                  }}
+                >
                   <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:10px_10px]"></div>
-                  <span className="text-2xl font-black text-white uppercase italic">
+                  <span className="text-base font-black text-slate-700 uppercase italic">
                     {(team.team_name || "U").charAt(0)}
                   </span>
                 </div>
 
-                <div className="flex flex-col items-center gap-1">
-                  <h3 className="text-[13px] font-black text-slate-900 uppercase italic group-hover:text-brand-accent transition-colors tracking-tight leading-snug">
+                <div className="flex flex-col items-center gap-0.5 w-full px-2 min-w-0 max-w-full flex-1">
+                  <h3 className="text-[9px] font-black text-slate-900 uppercase italic group-hover:text-brand-accent transition-colors tracking-tight leading-snug line-clamp-2 text-center w-full">
                     {team.team_name || "Untitled"}
                   </h3>
                   {team.submitted_at && (
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic opacity-40">
+                    <span className="text-[6px] font-bold text-slate-400 uppercase tracking-widest italic opacity-40">
                       ID: {team.id.slice(0, 4)}
                     </span>
                   )}
+                  {team.problem_statement_short && (
+                    <p className="text-[8px] font-medium text-slate-600 truncate w-full max-w-full text-center mt-1">
+                      {getSmartSummary(team.id, team.problem_statement_short)}
+                    </p>
+                  )}
                 </div>
 
-                <div className="w-full h-px bg-slate-50"></div>
-                
-                <div className="flex items-center justify-center gap-2 text-brand-accent font-black text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-                  DIVE <ChevronRight size={12} strokeWidth={4} />
+                <div className="w-full h-px bg-slate-50 mt-auto"></div>
+
+                <div className="flex items-center justify-center gap-1.5 text-brand-accent font-black text-[7px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0">
+                  DIVE <ChevronRight size={8} strokeWidth={4} />
                 </div>
               </Link>
-            ))}
+            )})}
           </div>
         )}
 
