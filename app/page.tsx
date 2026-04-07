@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import LogosHeader from "./components/LogosHeader";
 import { Search, Check, X, ArrowRight, Plus, LayoutGrid, List, BarChart3, ChevronRight } from "lucide-react";
@@ -19,6 +20,21 @@ type TeamPreview = {
 };
 
 export default function Home() {
+  return (
+    <Suspense fallback={
+       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-20 space-y-4">
+          <div className="h-12 w-12 border-4 border-brand-accent border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-xl text-slate-500 font-bold uppercase italic tracking-widest animate-pulse">Loading Interface...</div>
+       </div>
+    }>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [teams, setTeams] = useState<TeamPreview[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,14 +104,35 @@ export default function Home() {
       }
     };
 
-    // Load viewMode from localStorage
+    // Initialize phase from URL first, then localStorage
     if (typeof window !== 'undefined') {
       const savedViewMode = localStorage.getItem('ideaLensViewMode') as 'detailed' | 'compact';
       if (savedViewMode) setViewMode(savedViewMode);
+      
+      const urlPhase = searchParams.get('phase') as 'phase2' | 'phase3';
+      if (urlPhase) {
+        setPhase(urlPhase);
+      } else {
+        const savedPhase = localStorage.getItem('ideaLensPhase') as 'phase2' | 'phase3';
+        if (savedPhase) setPhase(savedPhase);
+      }
     }
 
     fetchData();
   }, []);
+
+  // Sync phase changes to URL and localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ideaLensPhase', phase);
+      
+      const currentParams = new URLSearchParams(window.location.search);
+      if (currentParams.get('phase') !== phase) {
+        currentParams.set('phase', phase);
+        router.push(`/?${currentParams.toString()}`, { scroll: false });
+      }
+    }
+  }, [phase, router]);
 
   // Persist viewMode to localStorage
   useEffect(() => {

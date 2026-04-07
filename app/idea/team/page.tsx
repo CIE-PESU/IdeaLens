@@ -137,6 +137,8 @@ function TeamDetailsContent() {
     const [submission, setSubmission] = useState<any | null>(null);
     const [humanEval, setHumanEval] = useState<any | null>(null);
     const [aiEval, setAiEval] = useState<any | null>(null);
+    const [p2RefHumanEval, setP2RefHumanEval] = useState<any | null>(null);
+    const [p2RefAiEval, setP2RefAiEval] = useState<any | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     // Jury Form State
@@ -166,7 +168,11 @@ function TeamDetailsContent() {
                 if (subError) throw subError;
                 setSubmission(subData);
 
-                // 2. Fetch human eval if exists
+                console.log("DEBUG: Active Phase:", phase);
+                console.log("DEBUG: Team ID:", id);
+                console.log("DEBUG: Team Name:", subData.team_name);
+
+                // 2. Fetch current phase human eval
                 const humanEvalTable = phase === "phase3" ? "human_evaluations_phase3" : "human_evaluations";
                 const { data: hData } = await supabase
                     .from(humanEvalTable)
@@ -178,9 +184,6 @@ function TeamDetailsContent() {
 
                 if (hData) {
                     setHumanEval(hData);
-                    
-                    // If in phase 3, we don't necessarily want to lock the jury from scoring Phase 3 if they need to,
-                    // but we will populate the phase 2 scores. Defaulting to standard view for now:
                     if (phase !== "phase3") {
                         setJurySubmitted(true);
                         setJuryScores({
@@ -189,18 +192,58 @@ function TeamDetailsContent() {
                             v: hData.viability_score || 5
                         });
                         setJuryFeedback(hData.overall_comments || "");
+                    } else {
+                        // If current phase eval exists, mark as submitted for UI feedback
+                        setJurySubmitted(true);
+                        setJuryScores({
+                            d: hData.desirability_score || "",
+                            f: hData.feasibility_score || "",
+                            v: hData.viability_score || ""
+                        });
+                        setJuryFeedback(hData.overall_comments || "");
                     }
                 }
 
-                // 3. Fetch AI eval if exists
+                // 3. Fetch AI eval for current phase
                 const aiEvalTable = phase === "phase3" ? "ai_evaluations3" : "ai_evaluations";
+                // Determine match key for AI eval
+                const aiMatchKey = (phase === "phase3" || aiEvalTable === "ai_evaluations3") ? "team_name" : "team_id";
+                const aiMatchVal = aiMatchKey === "team_name" ? subData.team_name : id;
+
                 const { data: aData } = await supabase
                     .from(aiEvalTable)
                     .select("*")
-                    .eq("team_id", id)
+                    .eq(aiMatchKey, aiMatchVal)
                     .maybeSingle();
 
-                if (aData) setAiEval(aData);
+                if (aData) {
+                    setAiEval(aData);
+                    console.log("DEBUG: Matched current AI Eval:", aData);
+                }
+
+                // 4. Fetch Phase 2 References if in Phase 3
+                if (phase === "phase3") {
+                    // Fetch Phase 2 Jury Ref (always idea_id)
+                    const { data: p2HData } = await supabase
+                        .from("human_evaluations")
+                        .select("*")
+                        .eq("idea_id", id)
+                        .order('evaluated_at', { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+                    
+                    if (p2HData) {
+                        setP2RefHumanEval(p2HData);
+                        console.log("DEBUG: Matched Phase 2 Jury Ref:", p2HData);
+                    }
+
+                    // Fetch Phase 2 AI Ref (from ai_evaluations3 which serves as reference for P3)
+                    // Wait, the user said "Read AI reference scores from ai_evaluations3"
+                    // And "Read jury reference scores from the correct Phase 3 reference source"
+                    // If aiEval is already from ai_evaluations3, then p2RefAiEval should be aiEval.
+                    setP2RefAiEval(aData);
+                }
+
 
             } catch (err: any) {
                 console.error("Fetch error:", err);
@@ -298,7 +341,7 @@ function TeamDetailsContent() {
                     <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tight">Intelligence Node Failed</h2>
                     <p className="text-slate-500 font-medium">{error || "Intelligence Node Not Found"}</p>
                     <button
-                        onClick={() => router.push('/')}
+                        onClick={() => router.push(`/?phase=${phase}`)}
                         className="mt-4 px-8 py-4 rounded-xl bg-slate-900 text-white font-black text-xs uppercase italic tracking-widest hover:bg-slate-800 transition-all shadow-xl"
                     >
                         Back
@@ -317,14 +360,14 @@ function TeamDetailsContent() {
                     <div className="flex items-center gap-4 flex-shrink-0">
                         <div className="flex items-center gap-1">
                             <button
-                                onClick={() => router.back()}
+                                onClick={() => router.push(`/?phase=${phase}`)}
                                 className="group flex items-center justify-center shrink-0 h-9 w-9 rounded-full transition-all text-slate-700 hover:bg-slate-200 hover:text-brand-accent"
                                 title="Go Back"
                             >
                                 <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
                             </button>
                             <button
-                                onClick={() => router.push('/')}
+                                onClick={() => router.push(`/?phase=${phase}`)}
                                 className="group flex items-center justify-center shrink-0 h-9 w-9 rounded-full transition-all text-slate-700 hover:bg-slate-200 hover:text-brand-accent"
                                 title="Home Dashboard"
                             >
@@ -618,9 +661,9 @@ function TeamDetailsContent() {
                                                     <div className="mt-2 flex flex-col gap-1">
                                                         <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Phase 2 Ref</span>
                                                         <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded w-fit uppercase tracking-tighter">
-                                                            <span>AI: <span className="font-black text-slate-900">{aiEval?.[field.aiKey] || '-'}</span></span>
+                                                            <span>AI: <span className="font-black text-slate-900">{p2RefAiEval?.[field.aiKey] || '-'}</span></span>
                                                             <span className="opacity-50">|</span>
-                                                            <span>Jury: <span className="font-black text-slate-900">{humanEval?.[field.aiKey] || '-'}</span></span>
+                                                            <span>Jury: <span className="font-black text-slate-900">{p2RefHumanEval?.[field.aiKey] || '-'}</span></span>
                                                         </div>
                                                     </div>
                                                 ) : (
