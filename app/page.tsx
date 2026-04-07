@@ -199,7 +199,7 @@ function DashboardContent() {
           <div className="flex items-center p-1 bg-slate-200/50 rounded-[14px] shadow-inner border border-slate-200/50">
             <button
               onClick={() => setPhase("phase2")}
-              className={`px-6 py-2 rounded-[10px] text-[11px] font-black uppercase tracking-widest transition-all ${
+              className={`px-6 py-2 rounded-[10px] text-ui-regular font-black uppercase tracking-widest transition-all ${
                 phase === "phase2"
                   ? "bg-white text-brand-accent shadow-sm"
                   : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
@@ -209,7 +209,7 @@ function DashboardContent() {
             </button>
             <button
               onClick={() => setPhase("phase3")}
-              className={`px-6 py-2 rounded-[10px] text-[11px] font-black uppercase tracking-widest transition-all ${
+              className={`px-6 py-2 rounded-[10px] text-ui-regular font-black uppercase tracking-widest transition-all ${
                 phase === "phase3"
                   ? "bg-white text-brand-accent shadow-sm"
                   : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
@@ -247,7 +247,7 @@ function DashboardContent() {
               <Link
                 key={team.id}
                 href={`/idea/team?id=${encodeURIComponent(team.id)}&phase=${phase}`}
-                className="group bg-white rounded-[14px] border border-slate-100 p-2.5 shadow-sm hover:shadow-xl hover:scale-[1.03] transition-all flex flex-col items-center text-center gap-2 relative overflow-hidden h-40 w-full"
+                className="group bg-white rounded-[14px] border border-slate-100 p-3 shadow-sm hover:shadow-xl hover:scale-[1.03] transition-all flex flex-col items-center text-center gap-3 relative overflow-hidden h-48 w-full"
               >
                 {phase !== "phase3" && (isEvaluated ? (
                     <div className="absolute bottom-3 right-3 flex items-center justify-center z-10" title="Evaluated">
@@ -288,17 +288,17 @@ function DashboardContent() {
                   </span>
                 </div>
 
-                <div className="flex flex-col items-center gap-0.5 w-full px-2 min-w-0 max-w-full flex-1">
-                  <h3 className="text-[9px] font-black text-slate-900 uppercase italic group-hover:text-brand-accent transition-colors tracking-tight leading-snug line-clamp-2 text-center w-full">
+                <div className="flex flex-col items-center gap-1 w-full px-2 min-w-0 max-w-full flex-1 justify-center">
+                  <h3 className="text-ui-compact font-black text-slate-900 uppercase italic group-hover:text-brand-accent transition-colors tracking-tight leading-snug line-clamp-2 text-center w-full">
                     {team.team_name || "Untitled"}
                   </h3>
                   {team.submitted_at && (
-                    <span className="text-[6px] font-bold text-slate-400 uppercase tracking-widest italic opacity-40">
+                    <span className="text-ui-micro font-bold text-slate-400 uppercase tracking-widest italic opacity-40">
                       ID: {team.id.slice(0, 4)}
                     </span>
                   )}
                   {team.problem_statement_short && (
-                    <p className="text-[8px] font-medium text-slate-600 truncate w-full max-w-full text-center mt-1">
+                    <p className="text-ui-tiny font-medium text-slate-600 line-clamp-3 w-full max-w-full text-center mt-auto leading-normal">
                       {getSmartSummary(team.id, team.problem_statement_short)}
                     </p>
                   )}
@@ -306,8 +306,8 @@ function DashboardContent() {
 
                 <div className="w-full h-px bg-slate-50 mt-auto"></div>
 
-                <div className="flex items-center justify-center gap-1.5 text-brand-accent font-black text-[7px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0">
-                  DIVE <ChevronRight size={8} strokeWidth={4} />
+                <div className="flex items-center justify-center gap-1.5 text-brand-accent font-black text-ui-micro uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0">
+                  DIVE <ChevronRight size={10} strokeWidth={4} />
                 </div>
               </Link>
             )})}

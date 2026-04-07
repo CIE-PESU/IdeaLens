@@ -8,6 +8,16 @@
 
   --font-sans: 'Inter', var(--font-geist-sans), ui-sans-serif, system-ui;
   --font-mono: var(--font-geist-mono);
+
+  /* Typography Tokens (+1.5px Baseline Increase - Golden Mean Refinement) */
+  --font-size-ui-micro: 7.5px;   /* formerly 6px */
+  --font-size-ui-tiny: 9.5px;    /* formerly 8px */
+  --font-size-ui-compact: 10.5px;/* formerly 9px */
+  --font-size-ui-regular: 12.5px;/* formerly 11px */
+  --font-size-ui-data-label: 14px; /* formerly 12px */
+  --font-size-ui-data-value: 15px; /* formerly 13px */
+  --font-size-ui-signal-content: 16.5px; /* formerly 15px */
+  --font-size-ui-signal-label: 20px;   /* formerly 18px */
 }
 
 :root {

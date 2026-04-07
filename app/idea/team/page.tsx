@@ -142,7 +142,7 @@ function TeamDetailsContent() {
     const [error, setError] = useState<string | null>(null);
 
     // Jury Form State
-    const [juryScores, setJuryScores] = useState<any>({ d: "", f: "", v: "" });
+    const [juryScores, setJuryScores] = useState<any>({ d: "", f: "", v: "", m: "", e: "" });
     const [juryFeedback, setJuryFeedback] = useState("");
     const [submittingJury, setSubmittingJury] = useState(false);
     const [jurySubmitted, setJurySubmitted] = useState(false);
@@ -189,7 +189,9 @@ function TeamDetailsContent() {
                         setJuryScores({
                             d: hData.desirability_score || 5,
                             f: hData.feasibility_score || 5,
-                            v: hData.viability_score || 5
+                            v: hData.viability_score || 5,
+                            m: "",
+                            e: ""
                         });
                         setJuryFeedback(hData.overall_comments || "");
                     } else {
@@ -198,7 +200,9 @@ function TeamDetailsContent() {
                         setJuryScores({
                             d: hData.desirability_score || "",
                             f: hData.feasibility_score || "",
-                            v: hData.viability_score || ""
+                            v: hData.viability_score || "",
+                            m: hData.market_context_score || "",
+                            e: hData.execution_readiness_score || ""
                         });
                         setJuryFeedback(hData.overall_comments || "");
                     }
@@ -261,17 +265,25 @@ function TeamDetailsContent() {
         setSubmittingJury(true);
         try {
             const humanEvalTable = phase === "phase3" ? "human_evaluations_phase3" : "human_evaluations";
+            
+            const scoresToInsert: any = {
+                idea_id: id,
+                team_name: submission.team_name,
+                desirability_score: juryScores.d ? Math.round(Number(juryScores.d)) : null,
+                feasibility_score: juryScores.f ? Math.round(Number(juryScores.f)) : null,
+                viability_score: juryScores.v ? Math.round(Number(juryScores.v)) : null,
+                overall_comments: juryFeedback,
+                evaluated_at: new Date().toISOString()
+            };
+
+            if (phase === "phase3") {
+                scoresToInsert.market_context_score = juryScores.m ? Math.round(Number(juryScores.m)) : null;
+                scoresToInsert.execution_readiness_score = juryScores.e ? Math.round(Number(juryScores.e)) : null;
+            }
+
             const { error: insertError } = await supabase
                 .from(humanEvalTable)
-                .insert({
-                    idea_id: id,
-                    team_name: submission.team_name,
-                    desirability_score: juryScores.d ? Math.round(Number(juryScores.d)) : null,
-                    feasibility_score: juryScores.f ? Math.round(Number(juryScores.f)) : null,
-                    viability_score: juryScores.v ? Math.round(Number(juryScores.v)) : null,
-                    overall_comments: juryFeedback,
-                    evaluated_at: new Date().toISOString()
-                });
+                .insert(scoresToInsert);
 
             if (insertError) {
                 console.error("Raw Insert Error:", JSON.stringify(insertError));
@@ -297,13 +309,24 @@ function TeamDetailsContent() {
         }
     };
 
+    const aiAvg = useMemo(() => {
+        if (!aiEval) return null;
+        const keys = phase === "phase3" 
+            ? ["desirability_score", "feasibility_score", "viability_score", "market_context_score", "execution_readiness_score"]
+            : ["desirability_score", "feasibility_score", "viability_score"];
+        
+        const validScores = keys.map(k => aiEval[k]).filter(s => s !== null && s !== undefined && s !== "");
+        if (validScores.length === 0) return null;
+        return (validScores.reduce((a, b) => Number(a) + Number(b), 0) / validScores.length).toFixed(2);
+    }, [aiEval, phase]);
+
     const juryAvg = useMemo(() => {
-        const scores = [Number(juryScores.d), Number(juryScores.f), Number(juryScores.v)].filter(v => !isNaN(v) && v > 0);
+        const keys: (keyof typeof juryScores)[] = phase === "phase3" ? ["d", "f", "v", "m", "e"] : ["d", "f", "v"];
+        const scores = keys.map(k => Number(juryScores[k])).filter(v => !isNaN(v) && v > 0);
         if (scores.length === 0) return "0.00";
         return (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
-    }, [juryScores]);
+    }, [juryScores, phase]);
 
-    const aiAvg = aiEval ? Number(aiEval.average_dfv_score).toFixed(2) : null;
     const scoreDelta = aiAvg ? (Number(juryAvg) - Number(aiAvg)).toFixed(2) : null;
 
     if (loading) {
@@ -352,7 +375,7 @@ function TeamDetailsContent() {
     }
 
     return (
-        <div className="relative min-h-screen bg-slate-50 font-sans text-slate-900 text-[17px] selection:bg-brand-accent/30 selection:text-white">
+        <div className="relative min-h-screen bg-slate-50 font-sans text-slate-900 text-ui-signal-content selection:bg-brand-accent/30 selection:text-white">
             {/* --- UNIFIED HEADER - Matching Homepage --- */}
             <div className="w-full px-6 -mt-8 pb-2 bg-slate-50">
                 <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
@@ -389,7 +412,7 @@ function TeamDetailsContent() {
                 </div>
             </div>
 
-            <main className="w-full max-w-[1700px] mx-auto px-6 lg:px-12 mt-6 pb-20" style={{ zoom: 0.9 }}>
+            <main className="w-full max-w-[1700px] mx-auto px-6 lg:px-12 mt-6 pb-20">
                 
                 {/* SEARCH BAR */}
                 <div className="flex justify-center mb-8">
@@ -458,11 +481,11 @@ function TeamDetailsContent() {
                                         return (
                                             <div key={key} className="flex flex-col border-l-2 border-slate-100 pl-6 py-1">
                                                 <div className="pb-1">
-                                                    <span className={`font-black tracking-[0.15em] uppercase ${key === 'problem_description' ? 'text-[18px] text-black' : 'text-[14px] text-slate-900'}`}>
+                                                    <span className={`font-black tracking-[0.15em] uppercase ${key === 'problem_description' ? 'text-ui-signal-label text-black' : 'text-ui-data-label text-slate-900'}`}>
                                                         {label}
                                                     </span>
                                                 </div>
-                                                <div className="text-[15px] leading-relaxed text-black whitespace-pre-wrap font-medium">
+                                                <div className="text-ui-signal-content leading-relaxed text-black whitespace-pre-wrap font-medium">
                                                     {renderValue(value)}
                                                 </div>
                                             </div>
@@ -579,10 +602,10 @@ function TeamDetailsContent() {
 
                                                                 return (
                                                                     <div key={key} className="flex flex-col gap-1.5 h-fit">
-                                                                        <span className="text-[12px] font-black tracking-widest text-slate-900 uppercase">
+                                                                        <span className="text-ui-data-label font-black tracking-widest text-slate-900 uppercase">
                                                                             {label}
                                                                         </span>
-                                                                        <div className="text-[13px] font-semibold text-slate-700 leading-snug">
+                                                                        <div className="text-ui-data-value font-semibold text-slate-700 leading-snug">
                                                                             {renderValue(submission[key])}
                                                                         </div>
                                                                     </div>
@@ -620,10 +643,10 @@ function TeamDetailsContent() {
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8 mt-6">
                                                             {otherKeys.map(key => (
                                                                 <div key={key} className="flex flex-col gap-1.5 h-fit">
-                                                                    <span className="text-[12px] font-black tracking-widest text-slate-900 uppercase">
+                                                                    <span className="text-ui-data-label font-black tracking-widest text-slate-900 uppercase">
                                                                         {formatLabel(key)}
                                                                     </span>
-                                                                    <div className="text-[13px] font-semibold text-slate-700 leading-snug">
+                                                                    <div className="text-ui-data-value font-semibold text-slate-700 leading-snug">
                                                                         {renderValue(submission[key])}
                                                                     </div>
                                                                 </div>
@@ -646,31 +669,47 @@ function TeamDetailsContent() {
                                 <h2 className="text-2xl font-black italic tracking-tight text-[#0F1E2E]">Jury Scoring Board</h2>
 
                                 <div className="flex flex-col gap-4">
-                                    {[
-                                        { label: "DESIRABILITY", key: "d" as const, aiKey: "desirability_score", icon: "🖤" },
-                                        { label: "FEASIBILITY", key: "f" as const, aiKey: "feasibility_score", icon: "🛠️" },
-                                        { label: "VIABILITY", key: "v" as const, aiKey: "viability_score", icon: "💰" },
-                                    ].map((field) => (
+                                    {(() => {
+                                        const fields: { label: string; key: "d" | "f" | "v" | "m" | "e"; aiKey: string; icon: string }[] = [
+                                            { label: "DESIRABILITY", key: "d" as const, aiKey: "desirability_score", icon: "🖤" },
+                                            { label: "FEASIBILITY", key: "f" as const, aiKey: "feasibility_score", icon: "🛠️" },
+                                            { label: "VIABILITY", key: "v" as const, aiKey: "viability_score", icon: "💰" },
+                                        ];
+                                        if (phase === "phase3") {
+                                            fields.push(
+                                                { label: "MARKET CONTEXT", key: "m" as const, aiKey: "market_context_score", icon: "🌐" },
+                                                { label: "EXECUTION READINESS", key: "e" as const, aiKey: "execution_readiness_score", icon: "🚀" }
+                                            );
+                                        }
+                                        return fields;
+                                    })().map((field) => (
                                         <div key={field.key} className="bg-white rounded-[20px] border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] p-5 flex flex-row items-center justify-between gap-6 transition-transform hover:scale-[1.01] overflow-hidden group">
                                             <div className="flex flex-col gap-1 min-w-[120px]">
-                                                <div className="flex items-center gap-2 text-[12px] font-black text-slate-900 uppercase tracking-widest leading-none">
-                                                    <span className="text-lg opacity-80 group-hover:opacity-100 transition-opacity">{field.icon}</span>
+                                                <div className="flex items-center gap-2 text-ui-data-label font-black text-slate-900 uppercase tracking-widest leading-none">
+                                                    <span className="text-xl opacity-80 group-hover:opacity-100 transition-opacity">{field.icon}</span>
                                                     {field.label}
                                                 </div>
                                                 {phase === "phase3" ? (
                                                     <div className="mt-2 flex flex-col gap-1">
-                                                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Phase 2 Ref</span>
-                                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded w-fit uppercase tracking-tighter">
-                                                            <span>AI: <span className="font-black text-slate-900">{p2RefAiEval?.[field.aiKey] || '-'}</span></span>
-                                                            <span className="opacity-50">|</span>
-                                                            <span>Jury: <span className="font-black text-slate-900">{p2RefHumanEval?.[field.aiKey] || '-'}</span></span>
+                                                        <span className="text-ui-micro font-bold text-slate-500 uppercase tracking-widest">Phase 2 Ref</span>
+                                                        <div className="flex items-center gap-2 text-ui-micro font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded w-fit uppercase tracking-tighter">
+                                                            {(() => {
+                                                                const missingVal = (field.key === "m" || field.key === "e") ? "N/A" : "-";
+                                                                return (
+                                                                    <>
+                                                                        <span>AI: <span className="font-black text-slate-900">{p2RefAiEval?.[field.aiKey] || missingVal}</span></span>
+                                                                        <span className="opacity-50">|</span>
+                                                                        <span>Jury: <span className="font-black text-slate-900">{p2RefHumanEval?.[field.aiKey] || missingVal}</span></span>
+                                                                    </>
+                                                                );
+                                                            })()}
                                                         </div>
                                                     </div>
                                                 ) : (
                                                     jurySubmitted && field.aiKey && aiEval?.[field.aiKey] && (
                                                         <div className="mt-2 flex items-center gap-2">
-                                                            <span className="text-[10px] font-bold text-brand-accent/60 uppercase tracking-tighter">AI Score</span>
-                                                            <span className="text-xs font-black text-brand-accent">{aiEval[field.aiKey]}</span>
+                                                            <span className="text-ui-micro font-bold text-brand-accent/60 uppercase tracking-tighter">AI Score</span>
+                                                            <span className="text-ui-tiny font-black text-brand-accent">{aiEval[field.aiKey]}</span>
                                                         </div>
                                                     )
                                                 )}
@@ -682,12 +721,12 @@ function TeamDetailsContent() {
                                                     disabled={jurySubmitted}
                                                     value={juryScores[field.key]}
                                                     onChange={(e) => setJuryScores({ ...juryScores, [field.key]: e.target.value })}
-                                                    className="w-10 text-center text-3xl font-black text-[#0F1E2E] bg-transparent focus:outline-none disabled:opacity-50"
-                                                    placeholder="-"
+                                                    className="w-12 text-center text-4xl font-black text-[#0F1E2E] bg-transparent focus:outline-none disabled:opacity-50"
+                                                    placeholder={""}
                                                 />
                                                 <div className="flex flex-col items-center opacity-100 select-none">
-                                                    <div className="w-px h-6 bg-slate-400"></div>
-                                                    <span className="text-[18px] font-black italic leading-none mt-1 text-black">10</span>
+                                                    <div className="w-px h-8 bg-slate-400"></div>
+                                                    <span className="text-ui-signal-label font-black italic leading-none mt-1 text-black">10</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -699,7 +738,7 @@ function TeamDetailsContent() {
                                         <button
                                             onClick={handleJurySubmit}
                                             disabled={submittingJury}
-                                            className="w-1/2 mx-auto py-2.5 rounded-xl bg-brand-accent text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.15)] hover:bg-brand-blue transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+                                            className="w-1/2 mx-auto py-3.5 rounded-xl bg-brand-accent text-white font-black text-ui-regular uppercase tracking-[0.2em] shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.15)] hover:bg-brand-blue transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
                                         >
                                             {submittingJury ? "Submitting Analysis..." : "Submit Jury Score"}
                                         </button>
@@ -707,27 +746,27 @@ function TeamDetailsContent() {
 
                                     {jurySubmitted && (
                                         <div className="flex flex-col gap-4">
-                                            <div className="w-full py-3.5 rounded-xl bg-emerald-500 text-white font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(16,185,129,0.2)]">
-                                                <CheckCircle2 size={16} /> Verdict Registered
+                                            <div className="w-full py-4 rounded-xl bg-emerald-500 text-white font-black text-ui-regular uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(16,185,129,0.2)]">
+                                                <CheckCircle2 size={18} /> Verdict Registered
                                             </div>
 
                                             {aiAvg && (
                                                 <div className="flex flex-col gap-3 w-full">
                                                     <div className="flex items-center gap-3 w-full">
                                                         <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-brand-accent/20 shadow-sm flex items-center justify-between overflow-hidden relative">
-                                                            <div className="absolute top-0 right-0 w-1 h-full bg-brand-accent/20"></div>
-                                                            <span className="text-[10px] font-black tracking-widest text-[#0F1E2E] uppercase">AI Average</span>
-                                                            <span className="text-xl font-black text-brand-accent italic">{aiAvg}</span>
+                                                            <div className="absolute top-0 right-0 w-1.5 h-full bg-brand-accent/20"></div>
+                                                            <span className="text-ui-micro font-black tracking-widest text-[#0F1E2E] uppercase">AI Average</span>
+                                                            <span className="text-2xl font-black text-brand-accent italic">{aiAvg}</span>
                                                         </div>
                                                         <div className="flex-1 bg-white rounded-xl px-5 py-3 border border-emerald-500/20 shadow-sm flex items-center justify-between overflow-hidden relative">
-                                                            <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500/20"></div>
-                                                            <span className="text-[10px] font-black tracking-widest text-[#0F1E2E] uppercase">Jury Average</span>
-                                                            <span className="text-xl font-black text-emerald-600 italic">{juryAvg}</span>
+                                                            <div className="absolute top-0 right-0 w-1.5 h-full bg-emerald-500/20"></div>
+                                                            <span className="text-ui-micro font-black tracking-widest text-[#0F1E2E] uppercase">Jury Average</span>
+                                                            <span className="text-2xl font-black text-emerald-600 italic">{juryAvg}</span>
                                                         </div>
                                                     </div>
                                                     <div className="w-full bg-white rounded-xl px-5 py-3 border border-slate-100 shadow-sm flex items-center justify-between">
-                                                        <span className="text-[11px] font-bold tracking-widest text-slate-900 uppercase">Variance</span>
-                                                        <span className="text-base font-black text-slate-900 border-b-2 border-slate-100">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
+                                                        <span className="text-ui-regular font-bold tracking-widest text-slate-900 uppercase">Variance</span>
+                                                        <span className="text-xl font-black text-slate-900 border-b-2 border-slate-100">{Math.abs(Number(scoreDelta)).toFixed(2)}</span>
                                                     </div>
                                                 </div>
                                             )}
